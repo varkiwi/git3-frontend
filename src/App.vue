@@ -5,34 +5,40 @@
     >
       <div class="d-flex align-center">
         <v-img
-          alt="Vuetify Logo"
+          alt="Git3 Logo"
           class="shrink mr-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          :src="require('./assets/git3Logo.png')"
           transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
+          width="60"
         />
       </div>
 
       <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+      <div>
+        <!--
+          Maybe this button + tooltip can be made as component, where we are able to provide
+          the mdi and tolltip text
+        -->
+        <v-btn
+          elevation="2"
+          icon
+          outlined
+        >
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                dark
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-login
+              </v-icon>
+            </template>
+            <span>Log In</span>
+          </v-tooltip>
+        </v-btn>
+      </div>
     </v-app-bar>
 
     <v-main>
