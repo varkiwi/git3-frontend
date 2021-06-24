@@ -14,30 +14,29 @@
         />
       </div>
 
+      <div class="d-flex align-center">
+        <div
+          class="d-flex align-center"
+          :class="{smallSearchBar: smallClass, bigSearchBar: !smallClass}"
+        >
+          <v-text-field
+            hide-details
+            outlined
+            placeholder="Search repository..."
+            label="Search repository..."
+            dense
+            prepend-inner-icon="mdi-magnify"
+            single-line
+            @focus="increaseSearchBar"
+            @focusout="decreaseSearchBar"
+            tabindex="0"
+          ></v-text-field>
+        </div>
+      </div>
+
       <v-spacer></v-spacer>
       <div>
-        <!--
-          Maybe this button + tooltip can be made as component, where we are able to provide
-          the mdi and tolltip text
-        -->
-        <v-btn
-          elevation="2"
-          icon
-          outlined
-        >
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon
-                dark
-                v-bind="attrs"
-                v-on="on"
-              >
-                mdi-login
-              </v-icon>
-            </template>
-            <span>Log In</span>
-          </v-tooltip>
-        </v-btn>
+        <button-with-tooltip spanText="Log In" mdi="mdi-login"></button-with-tooltip>
       </div>
     </v-app-bar>
 
@@ -48,12 +47,38 @@
 </template>
 
 <script>
+import ButtonWithTooltip from './components/ButtonWithTooltip.vue';
 
 export default {
     name: 'App',
 
+    components: {
+        ButtonWithTooltip,
+    },
+
     data: () => ({
-        //
+        smallClass: true,
     }),
+
+    methods: {
+        increaseSearchBar() {
+            this.smallClass = false;
+        },
+        decreaseSearchBar() {
+            this.smallClass = true;
+        },
+    },
 };
 </script>
+
+<style scoped>
+.smallSearchBar {
+  width: 272px;
+  max-width:  272px;
+}
+
+.bigSearchBar {
+  width: 544px;
+  max-width: 544px;
+}
+</style>
