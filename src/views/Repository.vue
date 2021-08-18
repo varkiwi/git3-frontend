@@ -5,7 +5,6 @@
         <!-- this is the header part -->
         <div class="d-flex mb-3">
           <h1>Repository Name: {{ $route.params.repositoryName }}</h1>
-          <!-- <p>User Address: {{ $route.params.userAddress }}</p> -->
         </div>
         <!-- This is the tabs parts -->
         <div>
@@ -27,26 +26,25 @@
       <v-divider/>
     </div>
 
-    <RepositoryCode v-if="selectedTab == '/code'" />
-    <!-- <IssuesList v-else-if="selectedTab == '/issues'" /> -->
+    <RepositoryCode v-if="$route.params.path == undefined" />
+    <IssuesList v-else-if="$route.params.path == 'issues'" />
 
   </div>
 </template>
 
 <script>
+import IssuesList from './IssuesList.vue';
 import RepositoryCode from './RepositoryCode.vue';
-// import IssuesList from '../components/IssuesList.vue';
 
 export default {
     name: 'Repository',
 
     components: {
         RepositoryCode,
-        // IssuesList,
+        IssuesList,
     },
 
     data: () => ({
-        selectedTab: '/code',
         tabs: [
             { name: '/code' },
             { name: '/issues' },
@@ -54,7 +52,24 @@ export default {
     }),
     methods: {
         handleTabs(e) {
-            this.selectedTab = e.target.id;
+            console.log(this.$awesomeTest);
+            const pushRoute = {
+                params: {
+                    userAddress: this.$route.params.userAddress,
+                    repositoryName: this.$route.params.repositoryName,
+                },
+            };
+            // if we visit a tab, we have to differentiate between files overview
+            // and everything else.
+            if (e.target.id !== '/code') {
+                pushRoute.name = 'Path';
+                pushRoute.params = {
+                    path: e.target.id.substring(1),
+                };
+            } else {
+                pushRoute.name = 'Repository';
+            }
+            this.$router.push(pushRoute);
         },
     },
 };

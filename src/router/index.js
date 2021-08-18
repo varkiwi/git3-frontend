@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-// import Home from '../views/Home.vue';
+import Home from '../views/Home.vue';
 import Repository from '../views/Repository.vue';
 
 Vue.use(VueRouter);
@@ -9,12 +9,17 @@ const routes = [
     {
         path: '/',
         name: 'Home',
-        // component: Home,
-        component: Repository,
+        component: Home,
+        // component: Repository,
     },
     {
         path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName',
         name: 'Repository',
+        component: Repository,
+    },
+    {
+        path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName/:path',
+        name: 'Path',
         component: Repository,
     },
     {
