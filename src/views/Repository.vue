@@ -52,7 +52,6 @@ export default {
     }),
     methods: {
         handleTabs(e) {
-            console.log(this.$awesomeTest);
             const pushRoute = {
                 params: {
                     userAddress: this.$route.params.userAddress,
