@@ -15,23 +15,21 @@
       </div>
 
       <div class="d-flex align-center">
-        <div
-          class="d-flex align-center"
-          :class="{smallSearchBar: smallClass, bigSearchBar: !smallClass}"
-        >
-          <v-text-field
-            hide-details
-            outlined
-            placeholder="Search repository..."
-            label="Search repository..."
-            dense
-            prepend-inner-icon="mdi-magnify"
-            single-line
-            @focus="increaseSearchBar"
-            @focusout="decreaseSearchBar"
-            tabindex="0"
-          ></v-text-field>
-        </div>
+          <v-autocomplete
+            class="pl-6 shrink"
+            style="height: 30px;"
+            color="white"
+            prepend-icon="mdi-magnify"
+            v-model="model"
+            :items="items"
+            :search-input.sync="searchRepository"
+            clearable
+            item-text="name"
+            item-value="symbol"
+            label="Search repository"
+            @change="routeToRepo"
+            ref="searchBar"
+          ></v-autocomplete>
       </div>
 
       <v-spacer></v-spacer>
@@ -57,28 +55,61 @@ export default {
     },
 
     data: () => ({
-        smallClass: true,
+        items: [],
+        model: null,
+        searchRepository: null,
     }),
 
     methods: {
-        increaseSearchBar() {
-            this.smallClass = false;
+        routeToRepo() {
+            const [partialUserAddress, repositoryName] = this.model.split('/');
+            const [front, back] = partialUserAddress.split('..');
+            this.$gitFactory.getRepositoriesUserList(repositoryName)
+                .then((users) => {
+                    const userAddress = users.find((address) => {
+                        if (address.startsWith(front) && address.endsWith(back)) {
+                            return address;
+                        }
+                        return false;
+                    });
+                    this.$router.push({
+                        name: 'Repository',
+                        params: {
+                            userAddress,
+                            repositoryName,
+                        },
+                    }).catch(() => {});
+                    // the catch block is used in order to catch the
+                    // redundant error message
+                    this.model = null;
+                    // we remove the focus from the search bar
+                    this.$refs.searchBar.blur();
+                });
         },
-        decreaseSearchBar() {
-            this.smallClass = true;
+    },
+
+    watch: {
+        searchRepository(userInput) {
+            if (userInput === undefined || userInput === null || userInput.length < 4) return;
+            this.$gitFactory.getRepositoryNames()
+                .then((repoNames) => {
+                    // and filter based on the search entered by the user
+                    // TODO: overtime, we should go over all possible repositories and not only the
+                    // first one get all user addresses who have a repository by the first name
+                    const filteredRepoNames = repoNames.filter((entry) => entry.toLowerCase()
+                        .startsWith(userInput.toLowerCase()));
+                    return Promise.all([
+                        this.$gitFactory.getRepositoriesUserList(filteredRepoNames[0]),
+                        filteredRepoNames[0],
+                    ]);
+                })
+                .then(([userList, filteredRepoName]) => {
+                    this.items = userList.map((userAddress) => `${userAddress.substring(0, 6)}..${userAddress.substring(37)}/${filteredRepoName}`);
+                })
+                .catch(() => {
+                    console.log('No findings');
+                });
         },
     },
 };
 </script>
-
-<style scoped>
-.smallSearchBar {
-  width: 272px;
-  max-width:  272px;
-}
-
-.bigSearchBar {
-  width: 544px;
-  max-width: 544px;
-}
-</style>
