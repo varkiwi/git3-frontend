@@ -72,6 +72,15 @@ export default {
                         }
                         return false;
                     });
+                    this.model = null;
+                    // we remove the focus from the search bar
+                    this.$refs.searchBar.blur();
+                    // if the user address and the repository are equal as the ones
+                    // in the route (url), we don't have to push a new path!
+                    if (userAddress === this.$route.params.userAddress
+                          && repositoryName === this.$route.params.repositoryName) {
+                        return;
+                    }
                     this.$router.push({
                         name: 'Repository',
                         params: {
@@ -81,9 +90,6 @@ export default {
                     }).catch(() => {});
                     // the catch block is used in order to catch the
                     // redundant error message
-                    this.model = null;
-                    // we remove the focus from the search bar
-                    this.$refs.searchBar.blur();
                 });
         },
     },

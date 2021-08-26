@@ -8,7 +8,7 @@
         </div>
         <!-- This is the tabs parts -->
         <div>
-          <v-tabs background-color="secondary">
+          <v-tabs background-color="secondary" v-model="selectedTab">
 
             <v-tabs-slider color="white"></v-tabs-slider>
 
@@ -46,20 +46,38 @@ export default {
 
     data: () => ({
         tabs: [
-            { name: '/code' },
-            { name: '/issues' },
+            { name: '/code', selected: true },
+            { name: '/issues', selected: false },
         ],
+        userAddress: undefined,
+        repositoryName: undefined,
+        selectedTab: 0,
     }),
+
+    mounted() {
+        // if userAddress and repositoryName remain the same, we don't have to do anything
+        if (this.userAddress === this.$route.params.userAddress
+              && this.repositoryName === this.$route.params.repositoryName) {
+            return;
+        }
+        this.userAddress = this.$route.params.userAddress;
+        this.repositoryName = this.$route.params.repositoryName;
+        // TODO: load smart contract and the files!
+        console.log('Loaded Repository', this.userAddress);
+        console.log(this.$route.params.userAddress);
+    },
+
     methods: {
         handleTabs(e) {
             const pushRoute = {
                 params: {
-                    userAddress: this.$route.params.userAddress,
-                    repositoryName: this.$route.params.repositoryName,
+                    userAddress: this.userAddress,
+                    repositoryName: this.repositoryName,
                 },
             };
             // if we visit a tab, we have to differentiate between files overview
             // and everything else.
+            // e.target.id.substring(1) gives me the name of the tab, excluding the leading slash
             if (e.target.id !== '/code') {
                 pushRoute.name = 'Path';
                 pushRoute.params = {
@@ -69,6 +87,21 @@ export default {
                 pushRoute.name = 'Repository';
             }
             this.$router.push(pushRoute);
+        },
+    },
+
+    watch: {
+        $route(to) {
+            // if the user address or the repository name has changed
+            if (this.userAddress !== to.params.userAddress
+                  || this.repositoryName !== to.params.repositoryName) {
+                // and the path is undefined, we set the selected tab on 0
+                // if someone is on issues and searches for a diffrerent repo
+                // this is going to set the tab on code.
+                if (to.params.path === undefined) {
+                    this.selectedTab = 0;
+                }
+            }
         },
     },
 };
