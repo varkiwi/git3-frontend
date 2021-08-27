@@ -56,8 +56,11 @@
 export default {
     name: 'RepositoryCode',
 
+    props: {
+        branches: Array,
+    },
+
     data: () => ({
-        branches: [{ title: 'main' }, { title: 'branch 1' }, { title: 'branch 2' }],
         model: 0,
         headers: [
             {
