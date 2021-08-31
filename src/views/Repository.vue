@@ -26,7 +26,11 @@
       <v-divider/>
     </div>
 
-    <RepositoryCode v-if="$route.params.path == undefined" v-bind:branches="branchNames"/>
+    <RepositoryCode
+        v-if="$route.params.path == undefined"
+        v-bind:branches="branchNames"
+        v-on:changeBranch="loadRemoteFiles"
+    />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
 </template>
@@ -66,12 +70,16 @@ export default {
         this.repositoryName = this.$route.params.repositoryName;
 
         this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-        this.updatedBranchNames();
+        await this.updatedBranchNames();
         // todo: we have to read in the files
+        this.loadRemoteFiles('main');
     },
 
     methods: {
         handleTabs(e) {
+            /**
+             * Method to handle the changes in the tabs
+             */
             const pushRoute = {
                 params: {
                     userAddress: this.userAddress,
@@ -92,9 +100,22 @@ export default {
             this.$router.push(pushRoute);
         },
         async updatedBranchNames() {
+            /**
+             * Reads the git branches from the contract and updates the names in the frontend
+             */
             const branchNames = await this.$gitRepo.getBranchNames();
             // eslint-disable-next-line arrow-body-style
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
+        },
+        async loadRemoteFiles(branchName) {
+            console.log('Loading remote files for branch', branchName);
+            this.$gitRepo.getBranch(branchName)
+                .then((branch) => {
+                    if (branch[0][0] === false) {
+                        console.log('Branch is not active!');
+                    }
+                    console.log(branch[0][1]);
+                });
         },
     },
 

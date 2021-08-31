@@ -12,8 +12,12 @@
             </template>
 
             <v-list>
-              <v-list-item-group v-model="model">
-                <v-list-item v-for="(branch, index) in branches" :key="index" link>
+              <v-list-item-group v-model="model" v-on:change="changeBranch">
+                <v-list-item
+                  v-for="(branch, index) in branches"
+                  :key="index"
+                  link
+                >
                   <v-list-item-title>{{ branch.title }}</v-list-item-title>
                 </v-list-item>
               </v-list-item-group>
@@ -87,5 +91,11 @@ export default {
             },
         ],
     }),
+    methods: {
+        changeBranch() {
+            console.log('Emitting event: Change branch:', this.branches[this.model].title);
+            this.$emit('changeBranch', this.branches[this.model].title);
+        },
+    },
 };
 </script>
