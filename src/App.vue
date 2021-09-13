@@ -113,8 +113,8 @@ export default {
                     // eslint-disable-next-line
                     this.items = userList.map((userAddress) => `${userAddress.substring(0, 6)}..${userAddress.substring(37)}/${filteredRepoName}`);
                 })
-                .catch(() => {
-                    console.log('No findings');
+                .catch((e) => {
+                    console.log('No findings', e);
                 });
         },
     },

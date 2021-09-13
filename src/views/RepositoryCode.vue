@@ -2,7 +2,8 @@
   <v-container class="px-md-4 px-lg-5">
     <v-row align="center" justify="center">
       <v-col lg="8">
-        <div class="d-flex flex-row">
+        <!-- the if is used to only show the element when the data is available -->
+        <div class="d-flex flex-row" v-if="branches !== undefined">
           <!-- Dropdown menu where we can switch the branch -->
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
@@ -62,6 +63,7 @@ export default {
 
     props: {
         branches: Array,
+        files: Array,
     },
 
     data: () => ({
@@ -76,20 +78,20 @@ export default {
             { text: 'Commit Message', sortable: false, value: 'commit_message' },
             { text: 'Commit Time', sortable: false, value: 'commit_time' },
         ],
-        files: [
-            {
-                name: 'Directory',
-                commit_message: 'Commit message here',
-                commit_time: '14 days ago',
-                type: 'dir',
-            },
-            {
-                name: 'File',
-                commit_message: 'Commit message here',
-                commit_time: '14 days ago',
-                type: 'file',
-            },
-        ],
+        // files: [
+        //     {
+        //         name: 'Directory',
+        //         commit_message: 'Commit message here',
+        //         commit_time: '14 days ago',
+        //         type: 'dir',
+        //     },
+        //     {
+        //         name: 'File',
+        //         commit_message: 'Commit message here',
+        //         commit_time: '14 days ago',
+        //         type: 'file',
+        //     },
+        // ],
     }),
     methods: {
         changeBranch() {

@@ -10,6 +10,7 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "ethers": "^5.4.5",
+    "ipfs-http-client-lite": "^0.3.0",
     "pin-abi": "^1.0.1",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
@@ -46,8 +47,14 @@
       "parser": "babel-eslint"
     },
     "rules": {
-      "indent": [ "error", 4 ],
-      "max-len": [ "error", 120 ]
+      "indent": [
+        "error",
+        4
+      ],
+      "max-len": [
+        "error",
+        120
+      ]
     }
   },
   "browserslist": [

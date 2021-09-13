@@ -29,6 +29,7 @@
     <RepositoryCode
         v-if="$route.params.path == undefined"
         v-bind:branches="branchNames"
+        v-bind:files="files"
         v-on:changeBranch="loadRemoteFiles"
     />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
@@ -40,6 +41,62 @@ import IssuesList from './IssuesList.vue';
 import RepositoryCode from './RepositoryCode.vue';
 
 import loadSmartContract from '../utils/utils';
+
+/**
+ * Takes a timestamp and calculates the difference between the given timestamp and the current timestamp.
+ * Returns a string, that shows the difference in either seconds, minutes, hours, days or years.
+ *
+ * @param commitTimestamp {Number} - A timestamp from the past
+ * @returns {string} - A string showing the differnce between the past and the current timestamp
+ */
+function calculateCommitTime(commitTimestamp) {
+    const currentTimestamp = Math.round(new Date().getTime() / 1000);
+    const diffSec = Math.round(currentTimestamp - commitTimestamp);
+    if (diffSec < 60) {
+        return `${diffSec} seconds ago`;
+    }
+    const diffMin = Math.round(diffSec / 60);
+    if (diffMin < 60) {
+        return `${diffMin} minutes ago`;
+    }
+    const diffHours = Math.round(diffMin / 60);
+    if (diffHours < 24) {
+        return `${diffHours} hours ago`;
+    }
+    const diffDays = Math.round(diffHours / 24);
+    if (diffDays < 365) {
+        return `${diffDays} days ago`;
+    }
+    return `${Math.round(diffDays / 365)} yeats ago`;
+}
+
+function addFileToMap(commit, entry, map) {
+    let entryInformation;
+    // if the map contains the entry, which is the file/folder name
+    if (map.has(entry.name)) {
+        // we are extracting the information it maps to
+        entryInformation = map.get(entry.name);
+        // if the cid from the previous entry is identical to the current cid, we have to update the
+        // commit message. Reason being is, we go from the youngest to the oldest commit. Since the youngest commit
+        // contains all files and folder information, we have to see, if they have been modified in between.
+        // If the cid is identical, we file/folder has not been modified, and we have to use an older commit message.
+        if (entryInformation.cid === entry.cid) {
+            entryInformation.commit_message = commit.commit_message;
+            map.set(entry.name, entryInformation);
+        }
+    } else {
+        // if the map does not contain the entry, we create a new entry
+        entryInformation = {
+            name: entry.name,
+            mode: entry.mode,
+            cid: entry.cid,
+            commit_message: commit.commit_message,
+            commit_time: calculateCommitTime(commit.committer.date_seconds),
+            type: entry.mode === 33188 ? 'file' : 'dir',
+        };
+        map.set(entry.name, entryInformation);
+    }
+}
 
 export default {
     name: 'Repository',
@@ -54,10 +111,11 @@ export default {
             { name: '/code', selected: true },
             { name: '/issues', selected: false },
         ],
+        files: [],
         userAddress: undefined,
         repositoryName: undefined,
         selectedTab: 0,
-        branchNames: [{ title: 'main' }, { title: 'branch 1' }, { title: 'branch 2' }],
+        branchNames: undefined,
     }),
 
     async mounted() {
@@ -108,14 +166,52 @@ export default {
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
         },
         async loadRemoteFiles(branchName) {
-            console.log('Loading remote files for branch', branchName);
+            // console.log('Loading remote files for branch', branchName);
             this.$gitRepo.getBranch(branchName)
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
                     }
-                    console.log(branch[0][1]);
+                    const cid = branch[0][1];
+                    console.log('CID:', cid);
+                    this.traverseGitStructures(cid);
                 });
+        },
+        async traverseGitStructures(cid) {
+            let parentCid = cid;
+            let data;
+            let commit;
+            let tree;
+            const fileStructure = new Map();
+            // let commit = commitJson;
+            const commitQueue = [];
+            do {
+                // eslint-disable-next-line no-await-in-loop
+                data = await this.$ipfsClient.cat(parentCid);
+                commit = JSON.parse(new TextDecoder('utf-8').decode(data));
+                // console.log('Commit', commit);
+
+                // eslint-disable-next-line no-await-in-loop
+                data = await this.$ipfsClient.cat(commit.tree);
+                tree = JSON.parse(new TextDecoder('utf-8').decode(data));
+                // console.log('Tree:', tree);
+
+                const { entries } = tree;
+                for (let i = 0; i < entries.length; i += 1) {
+                    // console.log('Entry:', entries[i]);
+                    addFileToMap(commit, entries[i], fileStructure);
+                }
+
+                // we add the parents cids to the queue
+                commitQueue.push(...commit.parents);
+                parentCid = commitQueue.shift();
+                console.log();
+            } while (parentCid);
+            // console.log('File Structure', fileStructure);
+            this.files = [];
+            fileStructure.forEach((value) => {
+                this.files.push(value);
+            });
         },
     },
 
