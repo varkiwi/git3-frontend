@@ -1,7 +1,7 @@
 <template>
   <v-container class="px-md-4 px-lg-5">
     <v-row align="center" justify="center">
-      <v-col lg="8">
+      <v-col lg="12">
         <!-- the if is used to only show the element when the data is available -->
         <div class="d-flex flex-row" v-if="branches !== undefined">
           <!-- Dropdown menu where we can switch the branch -->
@@ -37,7 +37,7 @@
     </v-row>
 
     <v-row align="center" justify="center">
-      <v-col lg="8">
+      <v-col lg="12">
         <!-- Table with files and directories -->
         <v-data-table
           hide-default-footer
@@ -78,24 +78,10 @@ export default {
             { text: 'Commit Message', sortable: false, value: 'commit_message' },
             { text: 'Commit Time', sortable: false, value: 'commit_time' },
         ],
-        // files: [
-        //     {
-        //         name: 'Directory',
-        //         commit_message: 'Commit message here',
-        //         commit_time: '14 days ago',
-        //         type: 'dir',
-        //     },
-        //     {
-        //         name: 'File',
-        //         commit_message: 'Commit message here',
-        //         commit_time: '14 days ago',
-        //         type: 'file',
-        //     },
-        // ],
     }),
     methods: {
         changeBranch() {
-            console.log('Emitting event: Change branch:', this.branches[this.model].title);
+            // console.log('Emitting event: Change branch:', this.branches[this.model].title);
             this.$emit('changeBranch', this.branches[this.model].title);
         },
     },

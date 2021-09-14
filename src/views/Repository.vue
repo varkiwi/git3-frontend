@@ -173,7 +173,6 @@ export default {
                         console.log('Branch is not active!');
                     }
                     const cid = branch[0][1];
-                    console.log('CID:', cid);
                     this.traverseGitStructures(cid);
                 });
         },
@@ -205,10 +204,10 @@ export default {
                 // we add the parents cids to the queue
                 commitQueue.push(...commit.parents);
                 parentCid = commitQueue.shift();
-                console.log();
             } while (parentCid);
-            // console.log('File Structure', fileStructure);
             this.files = [];
+            // we are transforming the map into an array, since the RepositoryCode requires an array of
+            // objects to display the files
             fileStructure.forEach((value) => {
                 this.files.push(value);
             });
