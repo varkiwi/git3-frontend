@@ -141,6 +141,9 @@ export default {
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
         },
         async loadRemoteFiles(branchName) {
+            /**
+             * Loads the files and directories for a branch and displays it for the user
+             */
             this.$gitRepo.getBranch(branchName)
                 .then((branch) => {
                     if (branch[0][0] === false) {
@@ -155,6 +158,10 @@ export default {
                 });
         },
         async changeDirectory(value) {
+            /**
+             * Function triggered whenever a user clicks on of the rows in order to load a file or
+             * change directory.
+             */
             console.log('Going to change the directory to', value);
             if (value.type === 'file') {
                 console.log('It is a file and we have to read the content!');
@@ -169,23 +176,31 @@ export default {
             }
         },
         async resolveCID(cid) {
+            /**
+             * Takes a cid to load the data from IPFS and decodes it for further use.
+             */
             const data = await this.$ipfsClient.cat(cid);
             return JSON.parse(new TextDecoder('utf-8').decode(data));
         },
         displayFiles() {
+            /**
+             * Function goes through the remote database and displays the files
+             * from the selected directory.
+             */
             let folder = this.remoteDatabase;
+            // check where the user currently is
             /* eslint-disable-next-line */
             for (const path of this.directoryPath) {
                 folder = folder[path];
             }
-
+            // update the entries with some additional data
             this.files = Object.keys(folder).map((key) => {
                 const entry = folder[key];
                 entry.type = entry.mode === 33188 ? 'file' : 'dir';
                 entry.commit_time = calculateCommitTime(entry.commit_time);
                 return entry;
             });
-
+            // if we are in a subdirectory, we need the user to give the possibility to go back
             if (this.directoryPath.length > 1) {
                 this.files.unshift({ name: '. .', type: 'dotdot' });
             }
