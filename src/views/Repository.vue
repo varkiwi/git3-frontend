@@ -31,6 +31,7 @@
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-on:changeBranch="loadRemoteFiles"
+        v-on:changeDirectory="changeDirectory"
     />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
@@ -70,34 +71,6 @@ function calculateCommitTime(commitTimestamp) {
     return `${Math.round(diffDays / 365)} yeats ago`;
 }
 
-function addFileToMap(commit, entry, map) {
-    let entryInformation;
-    // if the map contains the entry, which is the file/folder name
-    if (map.has(entry.name)) {
-        // we are extracting the information it maps to
-        entryInformation = map.get(entry.name);
-        // if the cid from the previous entry is identical to the current cid, we have to update the
-        // commit message. Reason being is, we go from the youngest to the oldest commit. Since the youngest commit
-        // contains all files and folder information, we have to see, if they have been modified in between.
-        // If the cid is identical, we file/folder has not been modified, and we have to use an older commit message.
-        if (entryInformation.cid === entry.cid) {
-            entryInformation.commit_message = commit.commit_message;
-            map.set(entry.name, entryInformation);
-        }
-    } else {
-        // if the map does not contain the entry, we create a new entry
-        entryInformation = {
-            name: entry.name,
-            mode: entry.mode,
-            cid: entry.cid,
-            commit_message: commit.commit_message,
-            commit_time: calculateCommitTime(commit.committer.date_seconds),
-            type: entry.mode === 33188 ? 'file' : 'dir',
-        };
-        map.set(entry.name, entryInformation);
-    }
-}
-
 export default {
     name: 'Repository',
 
@@ -112,6 +85,8 @@ export default {
             { name: '/issues', selected: false },
         ],
         files: [],
+        remoteDatabase: undefined,
+        directoryPath: [],
         userAddress: undefined,
         repositoryName: undefined,
         selectedTab: 0,
@@ -166,51 +141,54 @@ export default {
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
         },
         async loadRemoteFiles(branchName) {
-            // console.log('Loading remote files for branch', branchName);
             this.$gitRepo.getBranch(branchName)
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
                     }
                     const cid = branch[0][1];
-                    this.traverseGitStructures(cid);
+                    return this.resolveCID(cid);
+                }).then((remoteDatabase) => {
+                    this.remoteDatabase = remoteDatabase;
+                    this.directoryPath = ['files'];
+                    this.displayFiles();
                 });
         },
-        async traverseGitStructures(cid) {
-            let parentCid = cid;
-            let data;
-            let commit;
-            let tree;
-            const fileStructure = new Map();
-            // let commit = commitJson;
-            const commitQueue = [];
-            do {
-                // eslint-disable-next-line no-await-in-loop
-                data = await this.$ipfsClient.cat(parentCid);
-                commit = JSON.parse(new TextDecoder('utf-8').decode(data));
-                // console.log('Commit', commit);
-
-                // eslint-disable-next-line no-await-in-loop
-                data = await this.$ipfsClient.cat(commit.tree);
-                tree = JSON.parse(new TextDecoder('utf-8').decode(data));
-                // console.log('Tree:', tree);
-
-                const { entries } = tree;
-                for (let i = 0; i < entries.length; i += 1) {
-                    // console.log('Entry:', entries[i]);
-                    addFileToMap(commit, entries[i], fileStructure);
+        async changeDirectory(value) {
+            console.log('Going to change the directory to', value);
+            if (value.type === 'file') {
+                console.log('It is a file and we have to read the content!');
+            } else {
+                if (value.name === '. .' && value.type === 'dotdot') {
+                    this.directoryPath = this.directoryPath.slice(0, this.directoryPath.length - 2);
+                } else {
+                    this.directoryPath.push(value.name);
+                    this.directoryPath.push('files');
                 }
+                this.displayFiles();
+            }
+        },
+        async resolveCID(cid) {
+            const data = await this.$ipfsClient.cat(cid);
+            return JSON.parse(new TextDecoder('utf-8').decode(data));
+        },
+        displayFiles() {
+            let folder = this.remoteDatabase;
+            /* eslint-disable-next-line */
+            for (const path of this.directoryPath) {
+                folder = folder[path];
+            }
 
-                // we add the parents cids to the queue
-                commitQueue.push(...commit.parents);
-                parentCid = commitQueue.shift();
-            } while (parentCid);
-            this.files = [];
-            // we are transforming the map into an array, since the RepositoryCode requires an array of
-            // objects to display the files
-            fileStructure.forEach((value) => {
-                this.files.push(value);
+            this.files = Object.keys(folder).map((key) => {
+                const entry = folder[key];
+                entry.type = entry.mode === 33188 ? 'file' : 'dir';
+                entry.commit_time = calculateCommitTime(entry.commit_time);
+                return entry;
             });
+
+            if (this.directoryPath.length > 1) {
+                this.files.unshift({ name: '. .', type: 'dotdot' });
+            }
         },
     },
 

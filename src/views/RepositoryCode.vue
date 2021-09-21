@@ -44,11 +44,13 @@
           :headers="headers"
           :items="files"
           class="elevation-1"
+          style="cursor: pointer"
+          @click:row="changeDirectory"
         >
           <template v-slot:[`item.name`]="{ item }">
             <!-- if it is a file, we show the file icon, otherwise the directory icon -->
             <v-icon dark v-if="item.type === 'file'"> mdi-file </v-icon>
-            <v-icon dark v-else> mdi-folder </v-icon>
+            <v-icon dark v-else-if="item.type === 'dir'"> mdi-folder </v-icon>
             {{ item.name }}
           </template>
         </v-data-table>
@@ -81,8 +83,10 @@ export default {
     }),
     methods: {
         changeBranch() {
-            // console.log('Emitting event: Change branch:', this.branches[this.model].title);
             this.$emit('changeBranch', this.branches[this.model].title);
+        },
+        changeDirectory(value) {
+            this.$emit('changeDirectory', value);
         },
     },
 };
