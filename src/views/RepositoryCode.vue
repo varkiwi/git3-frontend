@@ -40,8 +40,9 @@
       <v-col lg="12">
         <!-- Table with files and directories -->
         <v-data-table
+          v-if='!showFileContent'
           hide-default-footer
-          :headers="headers"
+          :headers="headersFiles"
           :items="files"
           class="elevation-1"
           style="cursor: pointer"
@@ -54,6 +55,27 @@
             {{ item.name }}
           </template>
         </v-data-table>
+
+        <!-- Useing this simplied table to show the content of a file -->
+        <v-simple-table v-else dense>
+            <template v-slot:default>
+                <tbody>
+                    <tr
+                      v-for="item in files"
+                      :key="item.name"
+                      style='background-color: initial !important; cursor: pointer;'
+                    >
+                        <td
+                          style='border-bottom-width: 0; width: 5px; height: 20px'
+                          class='px-1 text-right'>
+                            {{item.line}}
+                        </td>
+                        <td style='border-bottom-width: 0; height: 20px' class='px-1 text-left'>{{item.text}}</td>
+                    </tr>
+                </tbody>
+            </template>
+        </v-simple-table>
+
       </v-col>
     </v-row>
   </v-container>
@@ -66,11 +88,12 @@ export default {
     props: {
         branches: Array,
         files: Array,
+        showFileContent: Boolean,
     },
 
     data: () => ({
         model: 0,
-        headers: [
+        headersFiles: [
             {
                 text: 'Name',
                 align: 'start',
@@ -79,6 +102,21 @@ export default {
             },
             { text: 'Commit Message', sortable: false, value: 'commit_message' },
             { text: 'Commit Time', sortable: false, value: 'commit_time' },
+        ],
+        headersCode: [
+            {
+                text: '',
+                align: 'start',
+                sortable: false,
+                value: 'line',
+                width: '2%',
+            },
+            {
+                text: '',
+                sortable: false,
+                value: 'text',
+                width: '98%',
+            },
         ],
     }),
     methods: {

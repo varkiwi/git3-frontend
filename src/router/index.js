@@ -23,6 +23,11 @@ const routes = [
         component: Repository,
     },
     {
+        path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName/:file',
+        name: 'File',
+        component: Repository,
+    },
+    {
         path: '/about',
         name: 'About',
         // route level code-splitting

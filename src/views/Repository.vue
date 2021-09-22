@@ -27,9 +27,10 @@
     </div>
 
     <RepositoryCode
-        v-if="$route.name == 'Repository' || $route.name == 'Path'"
+        v-if="$route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File'"
         v-bind:branches="branchNames"
         v-bind:files="files"
+        v-bind:showFileContent="showFileContent"
         v-on:changeBranch="loadRemoteFiles"
         v-on:changeDirectory="changeDirectory"
     />
@@ -85,6 +86,7 @@ export default {
             { name: '/issues', selected: false },
         ],
         files: [],
+        showFileContent: false,
         remoteDatabase: undefined,
         directoryPath: [],
         userAddress: undefined,
@@ -162,9 +164,30 @@ export default {
              * Function triggered whenever a user clicks on of the rows in order to load a file or
              * change directory.
              */
-            console.log('Going to change the directory to', value);
             if (value.type === 'file') {
-                console.log('It is a file and we have to read the content!');
+                this.showFileContent = true;
+                const fileContent = await this.resolveCID(value.cid);
+                let lineNumber = 0;
+                // replaces the last newline with a whitespace, in case there is one
+                if (fileContent.content.endsWith('\n')) {
+                    fileContent.content = fileContent.content.replace(/\n$/, '');
+                }
+                this.files = fileContent.content.split('\n').map((text) => {
+                    lineNumber += 1;
+                    return { line: lineNumber, text };
+                });
+
+                this.directoryPath.push(value.name);
+                const path = this.directoryPath.filter((entry) => entry !== 'files').join('.');
+                const routerPath = {
+                    name: 'File',
+                    params: {
+                        userAddress: this.userAddress,
+                        repositoryName: this.repositoryName,
+                        file: path,
+                    },
+                };
+                this.$router.push(routerPath).catch(() => {});
             } else {
                 if (value.name === '. .' && value.type === 'dotdot') {
                     this.directoryPath = this.directoryPath.slice(0, this.directoryPath.length - 2);
