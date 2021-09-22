@@ -27,7 +27,7 @@
     </div>
 
     <RepositoryCode
-        v-if="$route.params.path == undefined"
+        v-if="$route.name == 'Repository' || $route.name == 'Path'"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-on:changeBranch="loadRemoteFiles"
@@ -172,7 +172,21 @@ export default {
                     this.directoryPath.push(value.name);
                     this.directoryPath.push('files');
                 }
-                this.displayFiles();
+                const path = this.directoryPath.filter((entry) => entry !== 'files').join('.');
+
+                const routerPath = {
+                    params: {
+                        userAddress: this.userAddress,
+                        repositoryName: this.repositoryName,
+                    },
+                };
+                if (path === '') {
+                    routerPath.name = 'Repository';
+                } else {
+                    routerPath.name = 'Path';
+                    routerPath.params.path = path;
+                }
+                this.$router.push(routerPath).catch(() => {});
             }
         },
         async resolveCID(cid) {
@@ -209,20 +223,27 @@ export default {
 
     watch: {
         async $route(to) {
-            console.log(to);
-            // if the user address or the repository name has changed
-            if (this.userAddress !== to.params.userAddress
-                  || this.repositoryName !== to.params.repositoryName) {
-                this.userAddress = to.params.userAddress;
-                this.repositoryName = to.params.repositoryName;
-                // and the path is undefined, we set the selected tab on 0
-                // if someone is on issues and searches for a diffrerent repo
-                // this is going to set the tab on code.
-                if (to.params.path === undefined) {
-                    this.selectedTab = 0;
-                    this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-                    this.updatedBranchNames();
+            if (to.name === 'Repository') {
+                // if the user address or the repository name has changed
+                if (this.userAddress !== to.params.userAddress
+                        || this.repositoryName !== to.params.repositoryName) {
+                    this.userAddress = to.params.userAddress;
+                    this.repositoryName = to.params.repositoryName;
+                    // and the path is undefined, we set the selected tab on 0
+                    // if someone is on issues and searches for a diffrerent repo
+                    // this is going to set the tab on code.
+                    if (to.params.path === undefined) {
+                        this.selectedTab = 0;
+                        this.$gitRepo = await loadSmartContract(
+                            this.$gitFactory, this.userAddress, this.repositoryName,
+                        );
+                        this.updatedBranchNames();
+                    }
+                } else {
+                    this.displayFiles();
                 }
+            } else if (to.name === 'Path') {
+                this.displayFiles();
             }
         },
     },
