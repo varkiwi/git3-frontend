@@ -30,9 +30,11 @@
         v-if="$route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File'"
         v-bind:branches="branchNames"
         v-bind:files="files"
+        v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
         v-bind:showFileContent="showFileContent"
         v-on:changeBranch="loadRemoteFiles"
         v-on:changeDirectory="changeDirectory"
+        v-on:leaveFileContent="leaveFileContent"
     />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
@@ -241,6 +243,36 @@ export default {
             if (this.directoryPath.length > 1) {
                 this.files.unshift({ name: '. .', type: 'dotdot' });
             }
+        },
+        async leaveFileContent(value) {
+            // if the value is zero, the user clicked on the repository name
+            this.showFileContent = false;
+            const routerPath = {
+                params: {
+                    userAddress: this.userAddress,
+                    repositoryName: this.repositoryName,
+                },
+            };
+            if (value === 0) {
+                this.directoryPath = ['files'];
+                routerPath.name = 'Repository';
+            } else {
+                let i = 0;
+                let position = 0;
+                for (; i < this.directoryPath.length; i += 1) {
+                    if (this.directoryPath[i] !== 'files') {
+                        position += 1;
+                    }
+                    if (position === value) {
+                        break;
+                    }
+                }
+                // we do i + 2, because we want to preserve the directory name and the files entry in the array
+                this.directoryPath = this.directoryPath.slice(0, i + 2);
+                routerPath.name = 'Path';
+                routerPath.params.path = this.directoryPath.filter((entry) => entry !== 'files').join('.');
+            }
+            this.$router.push(routerPath).catch(() => {});
         },
     },
 

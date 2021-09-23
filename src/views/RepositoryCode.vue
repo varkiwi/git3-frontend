@@ -25,10 +25,19 @@
             </v-list>
           </v-menu>
 
-          <p class="pt-2 pl-3">
+          <p class="pt-2 pl-3" v-if='!showFileContent'>
             <v-icon dark small> mdi-source-branch </v-icon>
             {{ branches.length }} branches
           </p>
+          <template v-else v-for="(path, index) in directoryPath">
+            <span :key="index + '-separator'" class="pt-2 pl-1">/</span>
+            <a
+              :key="index + '-anchor'"
+              class="pt-2 pl-1"
+              style='color: white'
+              @click='leaveFileContent(index)'
+            >{{ path }}</a>
+          </template>
 
           <!-- Download button -->
           <v-btn class="ml-auto">Download</v-btn>
@@ -89,6 +98,7 @@ export default {
         branches: Array,
         files: Array,
         showFileContent: Boolean,
+        directoryPath: Array,
     },
 
     data: () => ({
@@ -125,6 +135,9 @@ export default {
         },
         changeDirectory(value) {
             this.$emit('changeDirectory', value);
+        },
+        leaveFileContent(value) {
+            this.$emit('leaveFileContent', value);
         },
     },
 };
