@@ -32,6 +32,7 @@
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
         v-bind:showFileContent="showFileContent"
+        v-bind:repository="userAddress + '/' + repositoryName"
         v-on:changeBranch="loadRemoteFiles"
         v-on:changeDirectory="changeDirectory"
         v-on:leaveFileContent="leaveFileContent"

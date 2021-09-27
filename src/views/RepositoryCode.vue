@@ -40,7 +40,8 @@
           </template>
 
           <!-- Download button -->
-          <v-btn class="ml-auto">Download</v-btn>
+          <!-- <v-btn class="ml-auto">Download</v-btn> -->
+          <download-button class="ml-auto" :repo="repository"></download-button>
         </div>
       </v-col>
     </v-row>
@@ -91,7 +92,10 @@
 </template>
 
 <script>
+import DownloadButton from '../components/DownloadButton.vue';
+
 export default {
+    components: { DownloadButton },
     name: 'RepositoryCode',
 
     props: {
@@ -99,6 +103,7 @@ export default {
         files: Array,
         showFileContent: Boolean,
         directoryPath: Array,
+        repository: String,
     },
 
     data: () => ({
