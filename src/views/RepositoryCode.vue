@@ -40,7 +40,6 @@
           </template>
 
           <!-- Download button -->
-          <!-- <v-btn class="ml-auto">Download</v-btn> -->
           <download-button class="ml-auto" :repo="repository"></download-button>
         </div>
       </v-col>
