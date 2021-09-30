@@ -34,7 +34,8 @@
 
       <v-spacer></v-spacer>
       <div>
-        <button-with-tooltip spanText="Log In" mdi="mdi-login"></button-with-tooltip>
+        <login-button v-if="!walletActive"/>
+        <button-with-tooltip v-else :spanText="walletAddress"/>
       </div>
     </v-app-bar>
 
@@ -45,12 +46,14 @@
 </template>
 
 <script>
+import LoginButton from './components/LoginButton.vue';
 import ButtonWithTooltip from './components/ButtonWithTooltip.vue';
 
 export default {
     name: 'App',
 
     components: {
+        LoginButton,
         ButtonWithTooltip,
     },
 
@@ -59,6 +62,16 @@ export default {
         model: null,
         searchRepository: null,
     }),
+
+    computed: {
+        walletActive() {
+            return this.$store.state.walletActive;
+        },
+        walletAddress() {
+            const address = this.$store.state.walletAddress;
+            return `${address.slice(0, 5)}...${address.slice(38)}`;
+        },
+    },
 
     methods: {
         routeToRepo() {
