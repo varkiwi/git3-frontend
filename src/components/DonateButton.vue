@@ -78,44 +78,6 @@ export default {
     methods: {
         async showModal() {
             this.dialog = true;
-            // try {
-            //     provider = await web3Modal.connect();
-            // } catch (e) {
-            //     console.log('Could not get a wallet connection', e);
-            //     return;
-            // }
-            // // checkig if the user is connected to the right network
-            // if (checkChainID(provider.chainId)) {
-            //     this.$store.commit('setActive', true);
-            //     this.$store.commit('setWalletAddress', provider.selectedAddress);
-            // } else {
-            //     console.log(`The chain id is ${provider.chainId}. We don't support that one`);
-            //     this.dialog = true;
-            //     this.$store.commit('setOpenedDialogOnce', true);
-            //     return;
-            // }
-
-            // provider.on('accountsChanged', (accounts) => {
-            //     console.log(`Accounts changed: ${accounts}`);
-            //     this.$store.commit('setWalletAddress', provider.selectedAddress);
-            // });
-            // // Subscribe to chainId change
-            // provider.on('chainChanged', (chainId) => {
-            //     console.log('ChainID Changed', chainId);
-            //     if (!checkChainID(chainId)) {
-            //         this.$store.commit('setActive', false);
-            //     }
-            // });
-
-            // // Subscribe to provider connection
-            // provider.on('connect', (info) => {
-            //     console.log('Connect:', info);
-            // });
-
-            // // Subscribe to provider disconnection
-            // provider.on('disconnect', (error) => {
-            //     console.log('Disconnect:', error);
-            // });
         },
         async sendDonation() {
             // const currency = this.switch1 ? 'USD' : 'Matic';
