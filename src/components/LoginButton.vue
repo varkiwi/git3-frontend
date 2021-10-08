@@ -37,6 +37,7 @@
 </template>
 
 <script>
+import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 
@@ -100,6 +101,8 @@ export default {
             if (checkChainID(provider.chainId)) {
                 this.$store.commit('setActive', true);
                 this.$store.commit('setWalletAddress', provider.selectedAddress);
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                this.$store.commit('setWeb3Provider', web3Provider);
             } else {
                 console.log(`The chain id is ${provider.chainId}. We don't support that one`);
                 this.dialog = true;
