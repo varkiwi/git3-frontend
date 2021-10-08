@@ -4,6 +4,8 @@ import gitBranchJson from '../assets/contracts/facets/GitBranch.sol/GitBranch.js
 export default class GitRepository {
     #gitBranchContract;
 
+    #gitRepoAddress;
+
     /**
      * Constructor for the GitRepository class. It takes two parameter which are
      * used to instantiate the underlying smart contracts.
@@ -12,6 +14,7 @@ export default class GitRepository {
      */
     constructor(address, provider) {
         this.#gitBranchContract = new ethers.Contract(address, gitBranchJson.abi, provider);
+        this.#gitRepoAddress = address;
     }
 
     /**
@@ -30,5 +33,9 @@ export default class GitRepository {
      */
     async getBranchNames() {
         return this.#gitBranchContract.functions.getBranchNames();
+    }
+
+    get repositoryAddress() {
+        return this.#gitRepoAddress;
     }
 }

@@ -5,6 +5,11 @@
         <!-- this is the header part -->
         <div class="d-flex mb-3">
           <h1>Repository Name: {{ $route.params.repositoryName }}</h1>
+          <donate-button
+            v-if="walletActive"
+            :repoAddress="repoAddress"
+            class='ml-auto'
+          />
         </div>
         <!-- This is the tabs parts -->
         <div>
@@ -46,6 +51,7 @@ import IssuesList from './IssuesList.vue';
 import RepositoryCode from './RepositoryCode.vue';
 
 import loadSmartContract from '../utils/utils';
+import DonateButton from '../components/DonateButton.vue';
 
 /**
  * Takes a timestamp and calculates the difference between the given timestamp and the current timestamp.
@@ -81,6 +87,7 @@ export default {
     components: {
         RepositoryCode,
         IssuesList,
+        DonateButton,
     },
 
     data: () => ({
@@ -94,6 +101,7 @@ export default {
         directoryPath: [],
         userAddress: undefined,
         repositoryName: undefined,
+        repoAddress: undefined,
         selectedTab: 0,
         branchNames: undefined,
     }),
@@ -108,9 +116,15 @@ export default {
         this.repositoryName = this.$route.params.repositoryName;
 
         this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
+        this.repoAddress = this.$gitRepo.repositoryAddress;
         await this.updatedBranchNames();
-        // todo: we have to read in the files
         this.loadRemoteFiles('main');
+    },
+
+    computed: {
+        walletActive() {
+            return this.$store.state.walletActive;
+        },
     },
 
     methods: {
