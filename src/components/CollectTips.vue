@@ -43,13 +43,6 @@ export default {
         async collectTips() {
             const gitRepo = this.$store.state.gitRepository;
             gitRepo.collectTips()
-                .then((txData) => {
-                    const tx = txData;
-                    tx.from = this.$store.state.walletAddress;
-                    const { web3Provider } = this.$store.state;
-                    const signer = web3Provider.getSigner();
-                    return signer.sendTransaction(tx);
-                })
                 .then((transaction) => {
                     this.waitingForTx = true;
                     return transaction.wait();
