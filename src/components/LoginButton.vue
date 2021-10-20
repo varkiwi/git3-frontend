@@ -113,6 +113,10 @@ export default {
             provider.on('accountsChanged', (accounts) => {
                 console.log(`Accounts changed: ${accounts}`);
                 this.$store.commit('setWalletAddress', provider.selectedAddress);
+                const gitRepo = this.$store.state.gitRepository;
+                gitRepo.tips.then((tips) => {
+                    this.$store.commit('setRepositoryDonations', tips);
+                });
             });
             // Subscribe to chainId change
             provider.on('chainChanged', (chainId) => {

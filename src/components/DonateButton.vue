@@ -82,19 +82,13 @@ export default {
         async sendDonation() {
             // const currency = this.switch1 ? 'USD' : 'Matic';
             const { web3Provider } = this.$store.state;
-            web3Provider.getGasPrice()
-                .then(async (gasPrice) => {
-                    const tx = {
-                        from: this.$store.state.walletAddress,
-                        to: this.repoAddress, // repo address
-                        value: ethers.utils.parseEther(this.amount.toString()),
-                        nonce: await web3Provider.getTransactionCount(this.$store.state.walletAddress, 'latest'),
-                        gasLimit: ethers.utils.hexlify('0x100000'), // 100000
-                        gasPrice: `0x${gasPrice.toString()}`,
-                    };
-                    const signer = web3Provider.getSigner();
-                    return signer.sendTransaction(tx);
-                })
+            const tx = {
+                from: this.$store.state.walletAddress,
+                to: this.repoAddress, // repo address
+                value: ethers.utils.parseEther(this.amount.toString()),
+            };
+            const signer = web3Provider.getSigner();
+            signer.sendTransaction(tx)
                 .then((transaction) => {
                     this.dialog = false;
                     this.waitingForTx = true;
