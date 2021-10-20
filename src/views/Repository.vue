@@ -123,10 +123,12 @@ export default {
         this.userAddress = this.$route.params.userAddress;
         this.repositoryName = this.$route.params.repositoryName;
 
-        this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-        this.$store.commit('setGitRepository', this.$gitRepo);
-        this.repoAddress = this.$gitRepo.repositoryAddress;
-        const tips = await this.$gitRepo.tips;
+        this.gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
+        const { web3Provider } = this.$store.state;
+        this.gitRepo.web3Signer = web3Provider.getSigner();
+        this.$store.commit('setGitRepository', this.gitRepo);
+        this.repoAddress = this.gitRepo.repositoryAddress;
+        const tips = await this.gitRepo.tips;
         this.$store.commit('setRepositoryDonations', tips);
         await this.updatedBranchNames();
         this.loadRemoteFiles('main');
@@ -170,7 +172,7 @@ export default {
             /**
              * Reads the git branches from the contract and updates the names in the frontend
              */
-            const branchNames = await this.$gitRepo.getBranchNames();
+            const branchNames = await this.gitRepo.getBranchNames();
             // eslint-disable-next-line arrow-body-style
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
         },
@@ -178,7 +180,7 @@ export default {
             /**
              * Loads the files and directories for a branch and displays it for the user
              */
-            this.$gitRepo.getBranch(branchName)
+            this.gitRepo.getBranch(branchName)
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
@@ -319,11 +321,11 @@ export default {
                     // this is going to set the tab on code.
                     if (to.params.path === undefined) {
                         this.selectedTab = 0;
-                        this.$gitRepo = await loadSmartContract(
+                        this.gitRepo = await loadSmartContract(
                             this.$gitFactory, this.userAddress, this.repositoryName,
                         );
-                        this.$store.commit('setGitRepository', this.$gitRepo);
-                        const tips = await this.$gitRepo.tips;
+                        this.$store.commit('setGitRepository', this.gitRepo);
+                        const tips = await this.gitRepo.tips;
                         this.$store.commit('setRepositoryDonations', tips);
                         this.updatedBranchNames();
                     }

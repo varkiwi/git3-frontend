@@ -101,9 +101,13 @@ export default {
             if (checkChainID(provider.chainId)) {
                 const web3Provider = new ethers.providers.Web3Provider(provider);
                 const gitRepo = this.$store.state.gitRepository;
-                // we are providing the signer to the gitRepository object, since otherwise
-                // we are not able to send state chaning tx
-                gitRepo.web3Signer = web3Provider.getSigner();
+                console.log('GitRepo', gitRepo);
+                // if we login but no repository has been loaded yet
+                if (gitRepo !== null) {
+                    // we are providing the signer to the gitRepository object, since otherwise
+                    // we are not able to send state chaning tx
+                    gitRepo.web3Signer = web3Provider.getSigner();
+                }
 
                 this.$store.commit('setActive', true);
                 this.$store.commit('setWalletAddress', provider.selectedAddress);
