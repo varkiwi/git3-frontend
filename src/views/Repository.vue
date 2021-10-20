@@ -1,12 +1,17 @@
 <template>
-  <div>
+  <div v-if='mounted'>
     <div class="mb-5">
       <div class="px-8 pt-3">
         <!-- this is the header part -->
         <div class="d-flex mb-3">
           <h1>Repository Name: {{ $route.params.repositoryName }}</h1>
           <donate-button
-            v-if="walletActive"
+            v-if="walletActive && walletAddress.toLowerCase() !== userAddress.toLowerCase()"
+            :repoAddress="repoAddress"
+            class='ml-auto'
+          />
+          <collect-tips
+            v-else-if="walletActive && walletAddress.toLowerCase() === userAddress.toLowerCase()"
             :repoAddress="repoAddress"
             class='ml-auto'
           />
@@ -52,6 +57,7 @@ import RepositoryCode from './RepositoryCode.vue';
 
 import loadSmartContract from '../utils/utils';
 import DonateButton from '../components/DonateButton.vue';
+import CollectTips from '../components/CollectTips.vue';
 
 /**
  * Takes a timestamp and calculates the difference between the given timestamp and the current timestamp.
@@ -88,6 +94,7 @@ export default {
         RepositoryCode,
         IssuesList,
         DonateButton,
+        CollectTips,
     },
 
     data: () => ({
@@ -104,6 +111,7 @@ export default {
         repoAddress: undefined,
         selectedTab: 0,
         branchNames: undefined,
+        mounted: false,
     }),
 
     async mounted() {
@@ -115,15 +123,24 @@ export default {
         this.userAddress = this.$route.params.userAddress;
         this.repositoryName = this.$route.params.repositoryName;
 
-        this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-        this.repoAddress = this.$gitRepo.repositoryAddress;
+        this.gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
+        const { web3Provider } = this.$store.state;
+        this.gitRepo.web3Signer = web3Provider.getSigner();
+        this.$store.commit('setGitRepository', this.gitRepo);
+        this.repoAddress = this.gitRepo.repositoryAddress;
+        const tips = await this.gitRepo.tips;
+        this.$store.commit('setRepositoryDonations', tips);
         await this.updatedBranchNames();
         this.loadRemoteFiles('main');
+        this.mounted = true;
     },
 
     computed: {
         walletActive() {
             return this.$store.state.walletActive;
+        },
+        walletAddress() {
+            return this.$store.state.walletAddress;
         },
     },
 
@@ -155,7 +172,7 @@ export default {
             /**
              * Reads the git branches from the contract and updates the names in the frontend
              */
-            const branchNames = await this.$gitRepo.getBranchNames();
+            const branchNames = await this.gitRepo.getBranchNames();
             // eslint-disable-next-line arrow-body-style
             this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
         },
@@ -163,7 +180,7 @@ export default {
             /**
              * Loads the files and directories for a branch and displays it for the user
              */
-            this.$gitRepo.getBranch(branchName)
+            this.gitRepo.getBranch(branchName)
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
@@ -304,9 +321,12 @@ export default {
                     // this is going to set the tab on code.
                     if (to.params.path === undefined) {
                         this.selectedTab = 0;
-                        this.$gitRepo = await loadSmartContract(
+                        this.gitRepo = await loadSmartContract(
                             this.$gitFactory, this.userAddress, this.repositoryName,
                         );
+                        this.$store.commit('setGitRepository', this.gitRepo);
+                        const tips = await this.gitRepo.tips;
+                        this.$store.commit('setRepositoryDonations', tips);
                         this.updatedBranchNames();
                     }
                 } else {
