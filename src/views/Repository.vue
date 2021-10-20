@@ -1,12 +1,17 @@
 <template>
-  <div>
+  <div v-if='mounted'>
     <div class="mb-5">
       <div class="px-8 pt-3">
         <!-- this is the header part -->
         <div class="d-flex mb-3">
           <h1>Repository Name: {{ $route.params.repositoryName }}</h1>
           <donate-button
-            v-if="walletActive"
+            v-if="walletActive && walletAddress.toLowerCase() !== userAddress.toLowerCase()"
+            :repoAddress="repoAddress"
+            class='ml-auto'
+          />
+          <collect-tips
+            v-else-if="walletActive && walletAddress.toLowerCase() === userAddress.toLowerCase()"
             :repoAddress="repoAddress"
             class='ml-auto'
           />
@@ -52,6 +57,7 @@ import RepositoryCode from './RepositoryCode.vue';
 
 import loadSmartContract from '../utils/utils';
 import DonateButton from '../components/DonateButton.vue';
+import CollectTips from '../components/CollectTips.vue';
 
 /**
  * Takes a timestamp and calculates the difference between the given timestamp and the current timestamp.
@@ -88,6 +94,7 @@ export default {
         RepositoryCode,
         IssuesList,
         DonateButton,
+        CollectTips,
     },
 
     data: () => ({
@@ -104,6 +111,7 @@ export default {
         repoAddress: undefined,
         selectedTab: 0,
         branchNames: undefined,
+        mounted: false,
     }),
 
     async mounted() {
@@ -116,14 +124,21 @@ export default {
         this.repositoryName = this.$route.params.repositoryName;
 
         this.$gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
+        this.$store.commit('setGitRepository', this.$gitRepo);
         this.repoAddress = this.$gitRepo.repositoryAddress;
+        const tips = await this.$gitRepo.tips;
+        this.$store.commit('setRepositoryDonations', tips);
         await this.updatedBranchNames();
         this.loadRemoteFiles('main');
+        this.mounted = true;
     },
 
     computed: {
         walletActive() {
             return this.$store.state.walletActive;
+        },
+        walletAddress() {
+            return this.$store.state.walletAddress;
         },
     },
 
@@ -307,6 +322,9 @@ export default {
                         this.$gitRepo = await loadSmartContract(
                             this.$gitFactory, this.userAddress, this.repositoryName,
                         );
+                        this.$store.commit('setGitRepository', this.$gitRepo);
+                        const tips = await this.$gitRepo.tips;
+                        this.$store.commit('setRepositoryDonations', tips);
                         this.updatedBranchNames();
                     }
                 } else {

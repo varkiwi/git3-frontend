@@ -9,6 +9,8 @@ export default new Vuex.Store({
         walletAddress: null,
         openedDialogOnce: false,
         web3Provider: null,
+        gitRepository: null,
+        repositoryDonations: 0,
     },
     mutations: {
         setActive(state, active) {
@@ -25,6 +27,12 @@ export default new Vuex.Store({
         },
         setWeb3Provider(state, provider) {
             state.web3Provider = provider;
+        },
+        setGitRepository(state, gitRepo) {
+            state.gitRepository = gitRepo;
+        },
+        setRepositoryDonations(state, tips) {
+            state.repositoryDonations = tips;
         },
     },
     actions: {
