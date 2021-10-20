@@ -99,9 +99,14 @@ export default {
             }
             // checkig if the user is connected to the right network
             if (checkChainID(provider.chainId)) {
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                const gitRepo = this.$store.state.gitRepository;
+                // we are providing the signer to the gitRepository object, since otherwise
+                // we are not able to send state chaning tx
+                gitRepo.web3Signer = web3Provider.getSigner();
+
                 this.$store.commit('setActive', true);
                 this.$store.commit('setWalletAddress', provider.selectedAddress);
-                const web3Provider = new ethers.providers.Web3Provider(provider);
                 this.$store.commit('setWeb3Provider', web3Provider);
             } else {
                 console.log(`The chain id is ${provider.chainId}. We don't support that one`);
@@ -111,12 +116,17 @@ export default {
             }
 
             provider.on('accountsChanged', (accounts) => {
-                console.log(`Accounts changed: ${accounts}`);
-                this.$store.commit('setWalletAddress', provider.selectedAddress);
                 const gitRepo = this.$store.state.gitRepository;
-                gitRepo.tips.then((tips) => {
-                    this.$store.commit('setRepositoryDonations', tips);
-                });
+                if (accounts.length === 0) {
+                    this.$store.commit('setActive', false);
+                    gitRepo.web3Signer = undefined;
+                } else {
+                    console.log(`Accounts changed: ${accounts}`);
+                    this.$store.commit('setWalletAddress', provider.selectedAddress);
+                    gitRepo.tips.then((tips) => {
+                        this.$store.commit('setRepositoryDonations', tips);
+                    });
+                }
             });
             // Subscribe to chainId change
             provider.on('chainChanged', (chainId) => {
