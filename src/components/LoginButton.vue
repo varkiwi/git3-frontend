@@ -101,7 +101,6 @@ export default {
             if (checkChainID(provider.chainId)) {
                 const web3Provider = new ethers.providers.Web3Provider(provider);
                 const gitRepo = this.$store.state.gitRepository;
-                console.log('GitRepo', gitRepo);
                 // if we login but no repository has been loaded yet
                 if (gitRepo !== null) {
                     // we are providing the signer to the gitRepository object, since otherwise
@@ -146,8 +145,9 @@ export default {
             });
 
             // Subscribe to provider disconnection
-            provider.on('disconnect', (error) => {
-                console.log('Disconnect:', error);
+            provider.on('disconnect', () => {
+                console.log('Provider disconnected:');
+                this.$store.commit('setActive', false);
             });
         },
         openDialog() {
