@@ -8,7 +8,7 @@
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
               <v-btn dark v-bind="attrs" v-on="on">
-                {{ branches[model].title }}
+                {{ branches[model] }}
               </v-btn>
             </template>
 
@@ -19,7 +19,7 @@
                   :key="index"
                   link
                 >
-                  <v-list-item-title>{{ branch.title }}</v-list-item-title>
+                  <v-list-item-title>{{ branch }}</v-list-item-title>
                 </v-list-item>
               </v-list-item-group>
             </v-list>
@@ -135,7 +135,7 @@ export default {
     }),
     methods: {
         changeBranch() {
-            this.$emit('changeBranch', this.branches[this.model].title);
+            this.$emit('changeBranch', this.branches[this.model]);
         },
         changeDirectory(value) {
             this.$emit('changeDirectory', value);
