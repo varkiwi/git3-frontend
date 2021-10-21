@@ -125,12 +125,17 @@ export default {
 
         this.gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
         const { web3Provider } = this.$store.state;
-        this.gitRepo.web3Signer = web3Provider.getSigner();
+
+        // update the provider of the git repository class, so we can send tx
+        if (web3Provider !== null) {
+            this.gitRepo.web3Signer = web3Provider.getSigner();
+        }
         this.$store.commit('setGitRepository', this.gitRepo);
         this.repoAddress = this.gitRepo.repositoryAddress;
         const tips = await this.gitRepo.tips;
         this.$store.commit('setRepositoryDonations', tips);
-        await this.updatedBranchNames();
+        const branches = await this.updatedBranchNames();
+        console.log('Branches', branches);
         this.loadRemoteFiles('main');
         this.mounted = true;
     },
@@ -184,13 +189,18 @@ export default {
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
+                        throw new Error('Branch is not active');
                     }
                     const cid = branch[0][1];
                     return this.resolveCID(cid);
-                }).then((remoteDatabase) => {
+                })
+                .then((remoteDatabase) => {
                     this.remoteDatabase = remoteDatabase;
                     this.directoryPath = ['files'];
                     this.displayFiles();
+                })
+                .catch((err) => {
+                    console.log('Err', err);
                 });
         },
         async changeDirectory(value) {
