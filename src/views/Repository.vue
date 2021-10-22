@@ -123,20 +123,7 @@ export default {
         this.userAddress = this.$route.params.userAddress;
         this.repositoryName = this.$route.params.repositoryName;
 
-        this.gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-        const { web3Provider } = this.$store.state;
-
-        // update the provider of the git repository class, so we can send tx
-        if (web3Provider !== null) {
-            this.gitRepo.web3Signer = web3Provider.getSigner();
-        }
-        this.$store.commit('setGitRepository', this.gitRepo);
-        this.repoAddress = this.gitRepo.repositoryAddress;
-        const tips = await this.gitRepo.tips;
-        this.$store.commit('setRepositoryDonations', tips);
-        const branches = await this.updatedBranchNames();
-        console.log('Branches', branches);
-        this.loadRemoteFiles('main');
+        await this.loadGitRepository();
         this.mounted = true;
     },
 
@@ -178,8 +165,7 @@ export default {
              * Reads the git branches from the contract and updates the names in the frontend
              */
             const branchNames = await this.gitRepo.getBranchNames();
-            // eslint-disable-next-line arrow-body-style
-            this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
+            [this.branchNames] = branchNames;
         },
         async loadRemoteFiles(branchName) {
             /**
@@ -287,6 +273,10 @@ export default {
             }
         },
         async leaveFileContent(value) {
+            /**
+             * Function which handles the clicks on the path shown to the user
+             * @param {Number} value - Which entry in the directory path has been clicked
+             */
             // if the value is zero, the user clicked on the repository name
             this.showFileContent = false;
             const routerPath = {
@@ -316,6 +306,37 @@ export default {
             }
             this.$router.push(routerPath).catch(() => {});
         },
+        async loadGitRepository() {
+            /**
+             * FUnction which loads the git repository from the chain and links with the
+             * web3 provider of the user if one is set.
+             */
+            this.gitRepo = await loadSmartContract(
+                this.$gitFactory, this.userAddress, this.repositoryName,
+            );
+            this.$store.commit('setGitRepository', this.gitRepo);
+            this.repoAddress = this.gitRepo.repositoryAddress;
+
+            const { web3Provider } = this.$store.state;
+            if (web3Provider !== null) {
+                this.gitRepo.web3Signer = web3Provider.getSigner();
+            }
+
+            this.gitRepo.tips
+                .then((tips) => {
+                    this.$store.commit('setRepositoryDonations', tips);
+                });
+            // TODO : make then of this!
+            this.updatedBranchNames()
+                .then(() => {
+                    // TODO: if this.branchNames is empty, we have to do something about it.
+                    // that means, that the repository has been created ut no code has been pushed.
+                    // TODO: Additionaly, this code is repeating in the one on the mounted function
+                    // We sould combine those into a function, to make it easier!
+                    console.log('Branch Names:', this.branchNames);
+                    this.loadRemoteFiles('main');
+                });
+        },
     },
 
     watch: {
@@ -331,13 +352,7 @@ export default {
                     // this is going to set the tab on code.
                     if (to.params.path === undefined) {
                         this.selectedTab = 0;
-                        this.gitRepo = await loadSmartContract(
-                            this.$gitFactory, this.userAddress, this.repositoryName,
-                        );
-                        this.$store.commit('setGitRepository', this.gitRepo);
-                        const tips = await this.gitRepo.tips;
-                        this.$store.commit('setRepositoryDonations', tips);
-                        this.updatedBranchNames();
+                        await this.loadGitRepository();
                     }
                 } else {
                     this.displayFiles();
