@@ -18,7 +18,10 @@
         </div>
         <!-- This is the tabs parts -->
         <div>
-          <v-tabs background-color="secondary" v-model="selectedTab">
+          <v-tabs
+            background-color="secondary"
+            v-model="selectedTab"
+          >
 
             <v-tabs-slider color="white"></v-tabs-slider>
 
@@ -37,7 +40,7 @@
     </div>
 
     <RepositoryCode
-        v-if="$route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File'"
+        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && activeBranch"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
@@ -47,6 +50,9 @@
         v-on:changeDirectory="changeDirectory"
         v-on:leaveFileContent="leaveFileContent"
     />
+    <RepositoryNoCode
+        v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
+    />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
 </template>
@@ -54,6 +60,7 @@
 <script>
 import IssuesList from './IssuesList.vue';
 import RepositoryCode from './RepositoryCode.vue';
+import RepositoryNoCode from './RepositoryNoCode.vue';
 
 import loadSmartContract from '../utils/utils';
 import DonateButton from '../components/DonateButton.vue';
@@ -92,26 +99,29 @@ export default {
 
     components: {
         RepositoryCode,
+        RepositoryNoCode,
         IssuesList,
         DonateButton,
         CollectTips,
     },
 
     data: () => ({
+        // if a repository has been created but no code pushed, there are no activeBranches
+        activeBranch: false,
+        branchNames: undefined,
+        directoryPath: [],
+        files: [],
+        mounted: false,
+        remoteDatabase: undefined,
+        repositoryName: undefined,
+        repoAddress: undefined,
+        selectedTab: 0,
+        showFileContent: false,
         tabs: [
             { name: '/code', selected: true },
             { name: '/issues', selected: false },
         ],
-        files: [],
-        showFileContent: false,
-        remoteDatabase: undefined,
-        directoryPath: [],
         userAddress: undefined,
-        repositoryName: undefined,
-        repoAddress: undefined,
-        selectedTab: 0,
-        branchNames: undefined,
-        mounted: false,
     }),
 
     async mounted() {
@@ -123,15 +133,7 @@ export default {
         this.userAddress = this.$route.params.userAddress;
         this.repositoryName = this.$route.params.repositoryName;
 
-        this.gitRepo = await loadSmartContract(this.$gitFactory, this.userAddress, this.repositoryName);
-        const { web3Provider } = this.$store.state;
-        this.gitRepo.web3Signer = web3Provider.getSigner();
-        this.$store.commit('setGitRepository', this.gitRepo);
-        this.repoAddress = this.gitRepo.repositoryAddress;
-        const tips = await this.gitRepo.tips;
-        this.$store.commit('setRepositoryDonations', tips);
-        await this.updatedBranchNames();
-        this.loadRemoteFiles('main');
+        await this.loadGitRepository();
         this.mounted = true;
     },
 
@@ -173,8 +175,7 @@ export default {
              * Reads the git branches from the contract and updates the names in the frontend
              */
             const branchNames = await this.gitRepo.getBranchNames();
-            // eslint-disable-next-line arrow-body-style
-            this.branchNames = branchNames.map((branchName) => { return { title: branchName[0] }; });
+            [this.branchNames] = branchNames;
         },
         async loadRemoteFiles(branchName) {
             /**
@@ -184,13 +185,18 @@ export default {
                 .then((branch) => {
                     if (branch[0][0] === false) {
                         console.log('Branch is not active!');
+                        throw new Error('Branch is not active');
                     }
                     const cid = branch[0][1];
                     return this.resolveCID(cid);
-                }).then((remoteDatabase) => {
+                })
+                .then((remoteDatabase) => {
                     this.remoteDatabase = remoteDatabase;
                     this.directoryPath = ['files'];
                     this.displayFiles();
+                })
+                .catch((err) => {
+                    console.log('Err', err);
                 });
         },
         async changeDirectory(value) {
@@ -277,6 +283,10 @@ export default {
             }
         },
         async leaveFileContent(value) {
+            /**
+             * Function which handles the clicks on the path shown to the user
+             * @param {Number} value - Which entry in the directory path has been clicked
+             */
             // if the value is zero, the user clicked on the repository name
             this.showFileContent = false;
             const routerPath = {
@@ -306,6 +316,40 @@ export default {
             }
             this.$router.push(routerPath).catch(() => {});
         },
+        async loadGitRepository() {
+            /**
+             * FUnction which loads the git repository from the chain and links with the
+             * web3 provider of the user if one is set.
+             */
+            this.gitRepo = await loadSmartContract(
+                this.$gitFactory, this.userAddress, this.repositoryName,
+            );
+            this.$store.commit('setGitRepository', this.gitRepo);
+            this.repoAddress = this.gitRepo.repositoryAddress;
+
+            const { web3Provider } = this.$store.state;
+            if (web3Provider !== null) {
+                this.gitRepo.web3Signer = web3Provider.getSigner();
+            }
+
+            this.gitRepo.tips
+                .then((tips) => {
+                    this.$store.commit('setRepositoryDonations', tips);
+                });
+            this.updatedBranchNames()
+                .then(() => {
+                    // if there are no branches
+                    if (this.branchNames.length === 0) {
+                        // we set the value to false
+                        this.activeBranch = false;
+                    } else {
+                        // otherwise true
+                        this.activeBranch = true;
+                        // and load the main branch
+                        this.loadRemoteFiles('main');
+                    }
+                });
+        },
     },
 
     watch: {
@@ -321,13 +365,7 @@ export default {
                     // this is going to set the tab on code.
                     if (to.params.path === undefined) {
                         this.selectedTab = 0;
-                        this.gitRepo = await loadSmartContract(
-                            this.$gitFactory, this.userAddress, this.repositoryName,
-                        );
-                        this.$store.commit('setGitRepository', this.gitRepo);
-                        const tips = await this.gitRepo.tips;
-                        this.$store.commit('setRepositoryDonations', tips);
-                        this.updatedBranchNames();
+                        await this.loadGitRepository();
                     }
                 } else {
                     this.displayFiles();
