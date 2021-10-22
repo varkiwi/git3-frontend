@@ -37,7 +37,7 @@
     </div>
 
     <RepositoryCode
-        v-if="$route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File'"
+        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && activeBranch"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
@@ -47,6 +47,7 @@
         v-on:changeDirectory="changeDirectory"
         v-on:leaveFileContent="leaveFileContent"
     />
+    <p v-else-if='!activeBranch'> No code has been pushed yet :)</p>
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
 </template>
@@ -98,20 +99,22 @@ export default {
     },
 
     data: () => ({
+        // if a repository has been created but no code pushed, there are no activeBranches
+        activeBranch: false,
+        branchNames: undefined,
+        directoryPath: [],
+        files: [],
+        mounted: false,
+        remoteDatabase: undefined,
+        repositoryName: undefined,
+        repoAddress: undefined,
+        selectedTab: 0,
+        showFileContent: false,
         tabs: [
             { name: '/code', selected: true },
             { name: '/issues', selected: false },
         ],
-        files: [],
-        showFileContent: false,
-        remoteDatabase: undefined,
-        directoryPath: [],
         userAddress: undefined,
-        repositoryName: undefined,
-        repoAddress: undefined,
-        selectedTab: 0,
-        branchNames: undefined,
-        mounted: false,
     }),
 
     async mounted() {
@@ -334,7 +337,13 @@ export default {
                     // TODO: Additionaly, this code is repeating in the one on the mounted function
                     // We sould combine those into a function, to make it easier!
                     console.log('Branch Names:', this.branchNames);
-                    this.loadRemoteFiles('main');
+                    if (this.branchNames.length === 0) {
+                        // we will have to do something
+                        this.activeBranch = false;
+                    } else {
+                        this.activeBranch = true;
+                        this.loadRemoteFiles('main');
+                    }
                 });
         },
     },
