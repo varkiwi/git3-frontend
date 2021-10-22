@@ -18,7 +18,10 @@
         </div>
         <!-- This is the tabs parts -->
         <div>
-          <v-tabs background-color="secondary" v-model="selectedTab">
+          <v-tabs
+            background-color="secondary"
+            v-model="selectedTab"
+          >
 
             <v-tabs-slider color="white"></v-tabs-slider>
 
@@ -47,7 +50,9 @@
         v-on:changeDirectory="changeDirectory"
         v-on:leaveFileContent="leaveFileContent"
     />
-    <p v-else-if='!activeBranch'> No code has been pushed yet :)</p>
+    <RepositoryNoCode
+        v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
+    />
     <IssuesList v-else-if="$route.params.path == 'issues'" />
   </div>
 </template>
@@ -55,6 +60,7 @@
 <script>
 import IssuesList from './IssuesList.vue';
 import RepositoryCode from './RepositoryCode.vue';
+import RepositoryNoCode from './RepositoryNoCode.vue';
 
 import loadSmartContract from '../utils/utils';
 import DonateButton from '../components/DonateButton.vue';
@@ -93,6 +99,7 @@ export default {
 
     components: {
         RepositoryCode,
+        RepositoryNoCode,
         IssuesList,
         DonateButton,
         CollectTips,
@@ -329,19 +336,16 @@ export default {
                 .then((tips) => {
                     this.$store.commit('setRepositoryDonations', tips);
                 });
-            // TODO : make then of this!
             this.updatedBranchNames()
                 .then(() => {
-                    // TODO: if this.branchNames is empty, we have to do something about it.
-                    // that means, that the repository has been created ut no code has been pushed.
-                    // TODO: Additionaly, this code is repeating in the one on the mounted function
-                    // We sould combine those into a function, to make it easier!
-                    console.log('Branch Names:', this.branchNames);
+                    // if there are no branches
                     if (this.branchNames.length === 0) {
-                        // we will have to do something
+                        // we set the value to false
                         this.activeBranch = false;
                     } else {
+                        // otherwise true
                         this.activeBranch = true;
+                        // and load the main branch
                         this.loadRemoteFiles('main');
                     }
                 });
