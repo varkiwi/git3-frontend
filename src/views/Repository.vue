@@ -118,8 +118,8 @@ export default {
         selectedTab: 0,
         showFileContent: false,
         tabs: [
-            { name: '/code', selected: true },
-            { name: '/issues', selected: false },
+            { name: '/code' },
+            { name: '/issues' },
         ],
         userAddress: undefined,
     }),
