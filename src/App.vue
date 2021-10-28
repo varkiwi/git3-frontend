@@ -11,6 +11,7 @@
           :src="require('./assets/git3Logo.png')"
           transition="scale-transition"
           width="60"
+          @click="backHome"
         />
       </div>
 
@@ -104,6 +105,13 @@ export default {
                     // the catch block is used in order to catch the
                     // redundant error message
                 });
+        },
+        backHome() {
+            if (this.$router.currentRoute.name !== 'Home') {
+                this.$router.push({
+                    name: 'Home',
+                }).catch(() => {});
+            }
         },
     },
 
