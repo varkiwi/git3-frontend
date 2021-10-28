@@ -10,7 +10,6 @@ const routes = [
         path: '/',
         name: 'Home',
         component: Home,
-        // component: Repository,
     },
     {
         path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName',
