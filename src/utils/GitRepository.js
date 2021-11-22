@@ -3,11 +3,14 @@ import { ethers } from 'ethers';
 import GitRepositoryError from './Errors';
 import gitBranchJson from '../assets/contracts/facets/GitBranch.sol/GitBranch.json';
 import gitTipsJson from '../assets/contracts/facets/GitTips.sol/GitTips.json';
+import gitIssuesJson from '../assets/contracts/facets/GitIssues.sol/GitIssues.json';
 
 export default class GitRepository {
     #gitBranchContract;
 
     #gitTipsContract;
+
+    #gitIssuesContract;
 
     #gitRepoAddress;
 
@@ -22,6 +25,7 @@ export default class GitRepository {
     constructor(address, provider) {
         this.#gitBranchContract = new ethers.Contract(address, gitBranchJson.abi, provider);
         this.#gitTipsContract = new ethers.Contract(address, gitTipsJson.abi, provider);
+        this.#gitIssuesContract = new ethers.Contract(address, gitIssuesJson.abi, provider);
         this.#gitRepoAddress = address;
     }
 
@@ -33,6 +37,16 @@ export default class GitRepository {
      */
     getBranch(branchName) {
         return this.#gitBranchContract.functions.getBranch(branchName);
+    }
+
+    /**
+     * Opens a new issue in the repository. It takes a cid and stores it in the contract.
+     * @param {String} cid - Cid to the issue data
+     * @returns {Promise} Returns a promise once the transaction has been send to the network
+     */
+    openIssue(cid) {
+        if (!this.#signer) throw new GitRepositoryError('Signer is not set. Can\'t send transaction');
+        return this.#gitIssuesContract.connect(this.#signer).functions.openIssue(cid);
     }
 
     /**

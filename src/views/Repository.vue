@@ -41,7 +41,7 @@
 
     <RepositoryCode
         v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File')
-            && $route.params.path == '' && activeBranch"
+            && ($route.params.path == '' || $route.params.path == undefined) && activeBranch"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
@@ -55,7 +55,10 @@
         v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
     />
     <IssuesList v-else-if="$route.params.path == 'issues' && $route.params.action === undefined" />
-    <NewIssue v-else-if="$route.params.path === 'issues' && $route.params.action === 'new'"/>
+    <NewIssue
+        v-else-if="$route.params.path === 'issues' && $route.params.action === 'new'"
+        :gitRepo="gitRepo"
+    />
   </div>
 </template>
 
