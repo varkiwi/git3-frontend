@@ -40,7 +40,8 @@
     </div>
 
     <RepositoryCode
-        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && activeBranch"
+        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File')
+            && $route.params.path == '' && activeBranch"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
@@ -53,12 +54,14 @@
     <RepositoryNoCode
         v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
     />
-    <IssuesList v-else-if="$route.params.path == 'issues'" />
+    <IssuesList v-else-if="$route.params.path == 'issues' && $route.params.action === undefined" />
+    <NewIssue v-else-if="$route.params.path === 'issues' && $route.params.action === 'new'"/>
   </div>
 </template>
 
 <script>
 import IssuesList from './IssuesList.vue';
+import NewIssue from './NewIssue.vue';
 import RepositoryCode from './RepositoryCode.vue';
 import RepositoryNoCode from './RepositoryNoCode.vue';
 
@@ -103,6 +106,7 @@ export default {
         IssuesList,
         DonateButton,
         CollectTips,
+        NewIssue,
     },
 
     data: () => ({
@@ -167,6 +171,9 @@ export default {
                 };
             } else {
                 pushRoute.name = 'Repository';
+                pushRoute.params = {
+                    path: '',
+                };
             }
             this.$router.push(pushRoute);
         },

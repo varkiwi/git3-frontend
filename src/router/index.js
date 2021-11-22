@@ -17,7 +17,7 @@ const routes = [
         component: Repository,
     },
     {
-        path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName/:path',
+        path: '/:userAddress(0x[a-fA-F0-9]{40})/:repositoryName/:path/:action?',
         name: 'Path',
         component: Repository,
     },
