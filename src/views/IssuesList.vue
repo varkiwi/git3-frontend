@@ -30,6 +30,7 @@
 </template>
 
 <script>
+import { ethers } from 'ethers';
 import GitRepository from '../utils/GitRepository';
 
 export default {
@@ -82,14 +83,14 @@ export default {
                     }
                     return {
                         state,
-                        bounty: issue[0][4],
+                        bounty: ethers.utils.formatEther(issue[0][4]),
                         opener: issue[0][5],
                         title: issueData.issueTitle,
                         text: issueData.issueText,
                     };
                 }))
             .then((allIssues) => Promise.all(allIssues))
-            .then((data) => { this.issues = data; });
+            .then((data) => { this.issues = data.reverse(); });
     },
     methods: {
         newIssue() {

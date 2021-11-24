@@ -36,6 +36,23 @@
     </v-row>
 
     <v-row align="center" justify="center">
+        <v-col offset-md="10" md="2" offset-lg="6" lg="2">
+            <div class="d-flex flex-row">
+                <v-text-field
+                    outlined
+                    dense
+                    name="bounty"
+                    label="Bounty"
+                    hide-details="auto"
+                    color="white"
+                    v-model="bounty"
+                    @input="updateButtonStatus"
+                ></v-text-field>
+            </div>
+        </v-col>
+    </v-row>
+
+    <v-row align="center" justify="center">
         <v-col lg="8">
             <div class="d-flex flex-row">
                 <v-btn
@@ -81,6 +98,7 @@
 </template>
 
 <script>
+import { ethers } from 'ethers';
 import GitRepository from '../utils/GitRepository';
 
 export default {
@@ -93,6 +111,7 @@ export default {
     data: () => ({
         issueTitle: '',
         issueText: '',
+        bounty: 0,
         disabled: true,
         loading: false,
         dialog: false,
@@ -113,7 +132,11 @@ export default {
             this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
                 .then((answer) => {
                     const cid = answer[0].hash;
-                    return this.gitRepo.openIssue(cid);
+                    console.log('CID', cid);
+                    const overrides = {
+                        value: ethers.utils.parseEther(this.bounty.toString()),
+                    };
+                    return this.gitRepo.openIssue(cid, overrides);
                 })
                 .then((tx) => {
                     this.loading = true;

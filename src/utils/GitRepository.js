@@ -44,9 +44,9 @@ export default class GitRepository {
      * @param {String} cid - Cid to the issue data
      * @returns {Promise} Returns a promise once the transaction has been send to the network
      */
-    openIssue(cid) {
+    openIssue(cid, overrides) {
         if (!this.#signer) throw new GitRepositoryError('Signer is not set. Can\'t send transaction');
-        return this.#gitIssuesContract.connect(this.#signer).functions.openIssue(cid);
+        return this.#gitIssuesContract.connect(this.#signer).functions.openIssue(cid, overrides);
     }
 
     /**
