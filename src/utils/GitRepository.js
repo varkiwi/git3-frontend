@@ -50,6 +50,19 @@ export default class GitRepository {
     }
 
     /**
+     * Returns a promise with all issue hashes in an array.
+     *
+     * @returns {Promise} Returns a promise with an array of hashes
+     */
+    get allIssues() {
+        return this.#gitIssuesContract.functions.getAllIssues();
+    }
+
+    issue(hash) {
+        return this.#gitIssuesContract.functions.getIssue(hash);
+    }
+
+    /**
      * The getBranchNames method return all the branch names of the repository.
      * @returns {Array} Array of strings, which represent the branch names
      */

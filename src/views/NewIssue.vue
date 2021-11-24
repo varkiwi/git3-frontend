@@ -102,18 +102,18 @@ export default {
             const issue = {
                 issueText: this.issueText,
                 issueTitle: this.issueTitle,
-                timesampt: Date.now(),
+                timestamp: Date.now(),
             };
+            const { web3Provider } = this.$store.state;
+            if (web3Provider === null) {
+                this.dialog = true;
+                return;
+            }
+            this.gitRepo.web3Signer = web3Provider.getSigner();
             this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
-                // eslint-disable-next-line consistent-return
                 .then((answer) => {
                     const cid = answer[0].hash;
-                    const { web3Provider } = this.$store.state;
-                    if (web3Provider !== null) {
-                        this.gitRepo.web3Signer = web3Provider.getSigner();
-                        return this.gitRepo.openIssue(cid);
-                    }
-                    return Promise.reject(new Error('No web3 provider'));
+                    return this.gitRepo.openIssue(cid);
                 })
                 .then((tx) => {
                     this.loading = true;
@@ -121,11 +121,6 @@ export default {
                 })
                 .then(() => {
                     this.loading = false;
-                })
-                .catch((err) => {
-                    if (err.message === 'No web3 provider') {
-                        this.dialog = true;
-                    }
                 });
         },
         updateButtonStatus() {

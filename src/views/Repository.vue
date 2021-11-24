@@ -54,7 +54,10 @@
     <RepositoryNoCode
         v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
     />
-    <IssuesList v-else-if="$route.params.path == 'issues' && $route.params.action === undefined" />
+    <IssuesList
+        v-else-if="$route.params.path == 'issues' && $route.params.action === undefined"
+        :gitRepo="gitRepo"
+    />
     <NewIssue
         v-else-if="$route.params.path === 'issues' && $route.params.action === 'new'"
         :gitRepo="gitRepo"
@@ -274,6 +277,7 @@ export default {
              * Function goes through the remote database and displays the files
              * from the selected directory.
              */
+            console.log('Display files');
             let folder = this.remoteDatabase;
             // check where the user currently is
             /* eslint-disable-next-line */
@@ -373,7 +377,7 @@ export default {
                     // and the path is undefined, we set the selected tab on 0
                     // if someone is on issues and searches for a diffrerent repo
                     // this is going to set the tab on code.
-                    if (to.params.path === undefined) {
+                    if (to.params.path === undefined || to.params.path === '') {
                         this.selectedTab = 0;
                         await this.loadGitRepository();
                     }
