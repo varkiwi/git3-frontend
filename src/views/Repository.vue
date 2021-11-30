@@ -55,11 +55,11 @@
         v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
     />
     <IssuesList
-        v-else-if="$route.params.path == 'issues' && $route.params.action === undefined"
+        v-else-if="$route.name == 'Issues' && $route.params.action === undefined"
         :gitRepo="gitRepo"
     />
     <NewIssue
-        v-else-if="$route.params.path === 'issues' && $route.params.action === 'new'"
+        v-else-if="$route.name === 'Issues' && $route.params.action === 'new'"
         :gitRepo="gitRepo"
     />
   </div>
@@ -170,11 +170,12 @@ export default {
             // if we visit a tab, we have to differentiate between files overview
             // and everything else.
             // e.target.id.substring(1) gives me the name of the tab, excluding the leading slash
-            if (e.target.id !== '/code') {
-                pushRoute.name = 'Path';
-                pushRoute.params = {
-                    path: e.target.id.substring(1),
-                };
+            if (e.target.id === '/issues') {
+                pushRoute.name = 'Issues';
+                // pushRoute.params = {
+                //     path: e.target.id.substring(1),
+                // };
+                console.log(pushRoute);
             } else {
                 pushRoute.name = 'Repository';
                 pushRoute.params = {

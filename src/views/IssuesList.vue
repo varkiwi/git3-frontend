@@ -98,7 +98,7 @@ export default {
              * Pushes a new route in order to create a new issue.
              */
             const pushRoute = {
-                name: 'Path',
+                name: 'Issues',
                 params: this.$router.history.current.params,
             };
             pushRoute.params.action = 'new';
