@@ -72,20 +72,21 @@ export default {
                     const issueData = JSON.parse(issueDataRaw.toString());
 
                     let state;
-                    if (issue[0][1] === 0) {
+                    if (issue[0].state === 0) {
                         state = 'Open';
-                    } else if (issue[0][1] === 1) {
+                    } else if (issue[0].state === 1) {
                         state = 'Closed';
-                    } else if (issue[0][1] === 2) {
+                    } else if (issue[0].state === 2) {
                         state = 'Resolved';
                     } else {
                         state = 'Unknown';
                     }
+                    console.log(issue, issue[0].issueNumber);
                     return {
                         state,
-                        bounty: ethers.utils.formatEther(issue[0][4]),
-                        opener: issue[0][5],
-                        title: issueData.issueTitle,
+                        bounty: ethers.utils.formatEther(issue[0].bounty),
+                        opener: issue[0].opener,
+                        title: `#${issue[0].issueNumber} ${issueData.issueTitle}`,
                         text: issueData.issueText,
                     };
                 }))

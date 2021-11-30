@@ -172,10 +172,6 @@ export default {
             // e.target.id.substring(1) gives me the name of the tab, excluding the leading slash
             if (e.target.id === '/issues') {
                 pushRoute.name = 'Issues';
-                // pushRoute.params = {
-                //     path: e.target.id.substring(1),
-                // };
-                console.log(pushRoute);
             } else {
                 pushRoute.name = 'Repository';
                 pushRoute.params = {
