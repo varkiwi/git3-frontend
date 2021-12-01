@@ -62,11 +62,15 @@
         v-else-if="$route.name === 'Issues' && $route.params.action === 'new'"
         :gitRepo="gitRepo"
     />
+    <Issue
+        v-else-if="$route.name === 'Issues' && !isNaN($route.params.action)"
+    />
   </div>
 </template>
 
 <script>
 import IssuesList from './IssuesList.vue';
+import Issue from './Issue.vue';
 import NewIssue from './NewIssue.vue';
 import RepositoryCode from './RepositoryCode.vue';
 import RepositoryNoCode from './RepositoryNoCode.vue';
@@ -113,6 +117,7 @@ export default {
         DonateButton,
         CollectTips,
         NewIssue,
+        Issue,
     },
 
     data: () => ({

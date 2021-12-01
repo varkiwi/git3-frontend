@@ -19,6 +19,7 @@
           :headers="headers"
           :items="issues"
           class="elevation-1"
+          @click:row="handleClick"
         >
           <template v-slot:[`item.name`]="{ item }">
             {{ item.name }}
@@ -81,19 +82,31 @@ export default {
                     } else {
                         state = 'Unknown';
                     }
-                    console.log(issue, issue[0].issueNumber);
                     return {
                         state,
                         bounty: ethers.utils.formatEther(issue[0].bounty),
                         opener: issue[0].opener,
                         title: `#${issue[0].issueNumber} ${issueData.issueTitle}`,
                         text: issueData.issueText,
+                        answers: issue[0].issueAnswers,
+                        issueNumber: issue[0].issueNumber,
                     };
                 }))
             .then((allIssues) => Promise.all(allIssues))
             .then((data) => { this.issues = data.reverse(); });
     },
     methods: {
+        handleClick(value) {
+            console.log('Value', value);
+            this.$router.push({
+                name: 'Issues',
+                params: {
+                    userAddress: this.$router.history.current.params.userAddress,
+                    repositoryName: this.$router.history.current.params.repositoryName,
+                    action: value.issueNumber,
+                },
+            });
+        },
         newIssue() {
             /**
              * Pushes a new route in order to create a new issue.
@@ -103,6 +116,7 @@ export default {
                 params: this.$router.history.current.params,
             };
             pushRoute.params.action = 'new';
+            console.log(pushRoute);
             this.$router.push(pushRoute);
         },
     },
