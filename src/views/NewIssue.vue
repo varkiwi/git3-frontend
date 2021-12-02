@@ -128,11 +128,11 @@ export default {
                 this.dialog = true;
                 return;
             }
+            let cid;
             this.gitRepo.web3Signer = web3Provider.getSigner();
             this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
                 .then((answer) => {
-                    const cid = answer[0].hash;
-                    console.log('CID', cid);
+                    cid = answer[0].hash;
                     const overrides = {
                         value: ethers.utils.parseEther(this.bounty.toString()),
                     };
@@ -144,6 +144,39 @@ export default {
                 })
                 .then(() => {
                     this.loading = false;
+                    return this.gitRepo.web3Signer.getAddress();
+                })
+                .then((address) => this.gitRepo.getUserCidHash(address, cid))
+                .then((result) => this.gitRepo.issue(result[0]))
+                .then((newIssue) => {
+                    let state;
+                    if (newIssue[0].state === 0) {
+                        state = 'Open';
+                    } else if (newIssue[0].state === 1) {
+                        state = 'Closed';
+                    } else if (newIssue[0].state === 2) {
+                        state = 'Resolved';
+                    } else {
+                        state = 'Unknown';
+                    }
+                    const issueData = {
+                        state,
+                        bounty: ethers.utils.formatEther(newIssue[0].bounty),
+                        opener: newIssue[0].opener,
+                        title: `#${newIssue[0].issueNumber} ${this.issueTitle}`,
+                        text: this.issueText,
+                        answers: [],
+                        issueNumber: newIssue[0].issueNumber.toString(),
+                    };
+                    localStorage.setItem('issue', JSON.stringify(issueData));
+                    this.$router.push({
+                        name: 'Issues',
+                        params: {
+                            userAddress: this.$router.history.current.params.userAddress,
+                            repositoryName: this.$router.history.current.params.repositoryName,
+                            action: newIssue[0].issueNumber,
+                        },
+                    });
                 });
         },
         updateButtonStatus() {

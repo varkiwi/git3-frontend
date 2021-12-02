@@ -89,7 +89,7 @@ export default {
                         title: `#${issue[0].issueNumber} ${issueData.issueTitle}`,
                         text: issueData.issueText,
                         answers: issue[0].issueAnswers,
-                        issueNumber: issue[0].issueNumber,
+                        issueNumber: issue[0].issueNumber.toString(),
                     };
                 }))
             .then((allIssues) => Promise.all(allIssues))
@@ -97,7 +97,7 @@ export default {
     },
     methods: {
         handleClick(value) {
-            console.log('Value', value);
+            localStorage.setItem('issue', JSON.stringify(value));
             this.$router.push({
                 name: 'Issues',
                 params: {
