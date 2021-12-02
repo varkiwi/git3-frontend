@@ -58,8 +58,18 @@ export default class GitRepository {
         return this.#gitIssuesContract.functions.getAllIssues();
     }
 
+    /**
+     * Returns an issue based on the given hash
+     *
+     * @param {String} userCidHash - Hash under which the issue is saved in the contract
+     * @returns {Promise} Returns a promise with the issue data
+     */
     issue(hash) {
         return this.#gitIssuesContract.functions.getIssue(hash);
+    }
+
+    getUserCidHash(openerAddress, cid) {
+        return this.#gitIssuesContract.functions.getUserCidHash(openerAddress, cid);
     }
 
     /**
@@ -102,5 +112,9 @@ export default class GitRepository {
      */
     set web3Signer(signer) {
         this.#signer = signer;
+    }
+
+    get web3Signer() {
+        return this.#signer;
     }
 }
