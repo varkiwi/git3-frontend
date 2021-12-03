@@ -13,6 +13,7 @@
         <v-col lg="8">
             <div class="d-flex flex-row">
                <v-chip color="green">{{ state }}</v-chip>
+               <v-chip v-if="bounty !== '0.0'" color="green">Bounty: {{ bounty }}</v-chip>
             </div>
         </v-col>
     </v-row>
@@ -50,6 +51,7 @@ export default {
         issueNumber: '',
         state: '',
         text: '',
+        bounty: 0,
     }),
 
     mounted() {
@@ -59,6 +61,7 @@ export default {
         this.issueNumber = `#${data.issueNumber}`;
         this.state = data.state;
         this.text = data.text;
+        this.bounty = data.bounty;
     },
 };
 </script>
