@@ -20,19 +20,32 @@
 
     <v-row align="center" justify="center">
         <v-col lg="8">
-            <div class="d-flex flex-row">
-               <v-textarea
-                outlined
-                name="input-7-4"
-                label=""
-                readonly
-                no-resize
-                color="white"
-                solo
-                persistent-hint
-                :value="text"
-                ></v-textarea>
-            </div>
+            <v-timeline dense>
+                <v-timeline-item color="green" small>
+                    <v-textarea
+                        outlined
+                        name="input-7-4"
+                        label=""
+                        readonly
+                        no-resize
+                        color="white"
+                        persistent-hint
+                        :value="text"
+                        ></v-textarea>
+                </v-timeline-item>
+
+                <v-timeline-item color="green" small v-for="answer in answers" :key="answer.timestamp">
+                    <v-textarea
+                        outlined
+                        name="input-7-4"
+                        :label="`${answer.author} commented`"
+                        readonly
+                        no-resize
+                        color="white"
+                        :value="answer.issueText"
+                    ></v-textarea>
+                </v-timeline-item>
+            </v-timeline>
         </v-col>
     </v-row>
 
@@ -88,17 +101,21 @@ export default {
         bounty: 0,
         comment: '',
         loading: false,
+        answers: [],
     }),
 
     mounted() {
         this.issue = JSON.parse(localStorage.getItem('issue'));
         localStorage.getItem('issue');
-        console.log('data', this.issue);
         this.title = this.issue.title.replace(/#\d/, '');
         this.issueNumber = `#${this.issue.issueNumber}`;
         this.state = this.issue.state;
         this.text = this.issue.text;
         this.bounty = this.issue.bounty;
+
+        const answers = this.issue.answers.map((answer) => this.$ipfsClient.cat(answer[0])
+            .then((rawData) => JSON.parse(new TextDecoder('utf-8').decode(rawData))));
+        Promise.all(answers).then((data) => { this.answers = data; });
     },
     methods: {
         async postComment() {
@@ -111,7 +128,6 @@ export default {
                     timestamp: Date.now(),
                     author: await gitRepo.web3Signer.getAddress(),
                 };
-                console.log('Issue to upload', issue);
                 this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
                     .then((answer) => {
                         const cid = answer[0].hash;
