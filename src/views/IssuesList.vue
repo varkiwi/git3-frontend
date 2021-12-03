@@ -67,11 +67,10 @@ export default {
         // resolve the hashes to the actual issues
         Promise.all(issues)
             .then((allIssues) => allIssues
-                .map(async (issue) => {
+                .map(async (issue, index) => {
                     // resolve the cid to get the issues data
                     const issueDataRaw = await this.$ipfsClient.cat(issue[0][2]);
                     const issueData = JSON.parse(issueDataRaw.toString());
-
                     let state;
                     if (issue[0].state === 0) {
                         state = 'Open';
@@ -90,6 +89,7 @@ export default {
                         text: issueData.issueText,
                         answers: issue[0].issueAnswers,
                         issueNumber: issue[0].issueNumber.toString(),
+                        issueHash: issueHashes[0][index],
                     };
                 }))
             .then((allIssues) => Promise.all(allIssues))
