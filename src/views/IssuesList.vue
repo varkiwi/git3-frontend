@@ -15,7 +15,6 @@
       <v-col lg="12">
         <!-- Table with files and directories -->
         <v-data-table
-          hide-default-footer
           :headers="headers"
           :items="issues"
           class="elevation-1"
