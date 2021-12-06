@@ -75,7 +75,7 @@
                     label="Add Bounty"
                     hide-details="auto"
                     color="white"
-                    v-model="bounty"
+                    v-model="addBounty"
                 ></v-text-field>
             </div>
         </v-col>
@@ -93,6 +93,17 @@
                 @click="postComment"
                 >
                     Comment
+                </v-btn>
+                <v-btn
+                v-if="issue.opener && walletAddress && walletAddress.toLowerCase() === issue.opener.toLowerCase()"
+                :loading="loading"
+                rounded
+                class="ml-4"
+                depressed
+                color="green"
+                @click="postAndCloseComment"
+                >
+                    Comment and {{ action }}
                 </v-btn>
                 <v-dialog
                     v-model="dialog"
@@ -142,21 +153,30 @@ export default {
         state: '',
         text: '',
         bounty: 0,
+        addBounty: 0,
         additionalBounty: 0,
         comment: '',
         loading: false,
         answers: [],
         dialog: false,
+        action: '',
     }),
 
     mounted() {
         this.issue = JSON.parse(localStorage.getItem('issue'));
         localStorage.getItem('issue');
+
         this.title = this.issue.title.replace(/#\d/, '');
         this.issueNumber = `#${this.issue.issueNumber}`;
         this.state = this.issue.state;
         this.text = this.issue.text;
-        this.bounty = 0;
+        this.bounty = this.issue.bounty.toString();
+
+        if (this.issue.bounty > 0 && this.state === 'Open') {
+            this.action = 'resolve';
+        } else {
+            this.action = 'close';
+        }
 
         const answers = this.issue.answers.map((answer) => this.$ipfsClient.cat(answer[0])
             .then((rawData) => JSON.parse(new TextDecoder('utf-8').decode(rawData))));
@@ -180,7 +200,7 @@ export default {
                     .then((answer) => {
                         const cid = answer[0].hash;
                         const overrides = {
-                            value: ethers.utils.parseEther(this.bounty.toString()),
+                            value: ethers.utils.parseEther(this.addBounty.toString()),
                         };
                         return gitRepo.appendAnswerToIssue(this.issue.issueHash, cid, overrides);
                     })
@@ -192,6 +212,29 @@ export default {
                         this.loading = false;
                     });
             }
+        },
+        async postAndCloseComment() {
+            await this.postComment();
+            this.loading = true;
+            const gitRepo = this.$store.state.gitRepository;
+
+            if (this.issue.bounty > 0) {
+                // when there is a bounty, we have to resolve it first,
+                // before we can close it! This might change in the future or maybe should :D
+                gitRepo.updateIssueState(this.issue.issueHash, 2)
+                    .then((tx) => tx.wait())
+                    .then(() => { this.loading = false; });
+            } else {
+                // there is no bounty, so we can close the issue :)
+                gitRepo.updateIssueState(this.issue.issueHash, 1)
+                    .then((tx) => tx.wait())
+                    .then(() => { this.loading = false; });
+            }
+        },
+    },
+    computed: {
+        walletAddress() {
+            return this.$store.state.walletAddress;
         },
     },
 };

@@ -16,6 +16,8 @@ export default class GitRepository {
 
     #signer;
 
+    #provider
+
     /**
      * Constructor for the GitRepository class. It takes two parameter which are
      * used to instantiate the underlying smart contracts.
@@ -27,6 +29,7 @@ export default class GitRepository {
         this.#gitTipsContract = new ethers.Contract(address, gitTipsJson.abi, provider);
         this.#gitIssuesContract = new ethers.Contract(address, gitIssuesJson.abi, provider);
         this.#gitRepoAddress = address;
+        this.#provider = provider;
     }
 
     /**
@@ -82,6 +85,19 @@ export default class GitRepository {
             .appendAnswerToIssue(issueHash, issueAnswerCid, overrides);
     }
 
+    /**
+     * This function is used to change the state of an issue.
+     *
+     * @param {String} issueHash - Hash of the issue to which the answer is added
+     * @param {Number} state - The new state of the issue.
+     */
+    updateIssueState(issueHash, state) {
+        return this.#gitIssuesContract
+            .connect(this.#signer)
+            .functions
+            .updateIssueState(issueHash, state);
+    }
+
     getUserCidHash(openerAddress, cid) {
         return this.#gitIssuesContract.functions.getUserCidHash(openerAddress, cid);
     }
@@ -130,5 +146,9 @@ export default class GitRepository {
 
     get web3Signer() {
         return this.#signer;
+    }
+
+    get web3Provider() {
+        return this.#provider;
     }
 }

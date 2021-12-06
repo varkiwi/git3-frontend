@@ -76,7 +76,9 @@ export default {
                     } else if (issue[0].state === 1) {
                         state = 'Closed';
                     } else if (issue[0].state === 2) {
-                        state = 'Resolved';
+                        const currentBlockNumber = await this.gitRepo.web3Provider.getBlockNumber();
+                        const remainingBlocks = (604800 - ((currentBlockNumber - issue[0].resolvedBlockNumber)));
+                        state = `Resolved ( ${remainingBlocks} till closing )`;
                     } else {
                         state = 'Unknown';
                     }
