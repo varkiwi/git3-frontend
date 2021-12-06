@@ -75,8 +75,11 @@ export default class GitRepository {
      * @param {String} issueAnswerCid - Cid to get the answer data
      * @returns {Promise} Returns a promise.
      */
-    appendAnswerToIssue(issueHash, issueAnswerCid) {
-        return this.#gitIssuesContract.connect(this.#signer).functions.appendAnswerToIssue(issueHash, issueAnswerCid);
+    appendAnswerToIssue(issueHash, issueAnswerCid, overrides) {
+        return this.#gitIssuesContract
+            .connect(this.#signer)
+            .functions
+            .appendAnswerToIssue(issueHash, issueAnswerCid, overrides);
     }
 
     getUserCidHash(openerAddress, cid) {
