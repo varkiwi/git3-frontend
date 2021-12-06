@@ -66,6 +66,22 @@
     </v-row>
 
     <v-row align="center" justify="center">
+        <v-col offset-md="10" md="2" offset-lg="6" lg="2">
+            <div class="d-flex flex-row">
+               <v-text-field
+                    outlined
+                    dense
+                    name="additionalBounty"
+                    label="Add Bounty"
+                    hide-details="auto"
+                    color="white"
+                    v-model="bounty"
+                ></v-text-field>
+            </div>
+        </v-col>
+    </v-row>
+
+    <v-row align="center" justify="center">
         <v-col lg="8">
             <div class="d-flex flex-row">
                <v-btn
@@ -78,6 +94,32 @@
                 >
                     Comment
                 </v-btn>
+                <v-dialog
+                    v-model="dialog"
+                    max-width="290"
+                >
+                    <v-card>
+                        <v-card-title class="text-h5">
+                        No wallet found
+                        </v-card-title>
+
+                        <v-card-text>
+                        Connect a wallet in order to add an answer to the issue.
+                        </v-card-text>
+
+                        <v-card-actions>
+                        <v-spacer></v-spacer>
+
+                        <v-btn
+                            color="green darken-1"
+                            text
+                            @click="dialog = false"
+                        >
+                            Ok
+                        </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
             </div>
         </v-col>
     </v-row>
@@ -86,6 +128,7 @@
 </template>
 
 <script>
+import { ethers } from 'ethers';
 
 export default {
     name: 'Issue',
@@ -99,9 +142,11 @@ export default {
         state: '',
         text: '',
         bounty: 0,
+        additionalBounty: 0,
         comment: '',
         loading: false,
         answers: [],
+        dialog: false,
     }),
 
     mounted() {
@@ -111,7 +156,7 @@ export default {
         this.issueNumber = `#${this.issue.issueNumber}`;
         this.state = this.issue.state;
         this.text = this.issue.text;
-        this.bounty = this.issue.bounty;
+        this.bounty = 0;
 
         const answers = this.issue.answers.map((answer) => this.$ipfsClient.cat(answer[0])
             .then((rawData) => JSON.parse(new TextDecoder('utf-8').decode(rawData))));
@@ -121,7 +166,10 @@ export default {
         async postComment() {
             if (this.comment.length > 0) {
                 const gitRepo = this.$store.state.gitRepository;
-                // TODO: we will have to make a check here in case the user is not logged in
+                if (!gitRepo.web3Signer) {
+                    this.dialog = true;
+                    return;
+                }
                 const issue = {
                     issueText: this.comment,
                     issueTitle: '',
@@ -131,7 +179,10 @@ export default {
                 this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
                     .then((answer) => {
                         const cid = answer[0].hash;
-                        return gitRepo.appendAnswerToIssue(this.issue.issueHash, cid);
+                        const overrides = {
+                            value: ethers.utils.parseEther(this.bounty.toString()),
+                        };
+                        return gitRepo.appendAnswerToIssue(this.issue.issueHash, cid, overrides);
                     })
                     .then((tx) => {
                         this.loading = true;
