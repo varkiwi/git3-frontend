@@ -196,9 +196,10 @@ export default {
                     timestamp: Date.now(),
                     author: await gitRepo.web3Signer.getAddress(),
                 };
+                let cid;
                 this.$ipfsClient.add(Buffer.from(JSON.stringify(issue)))
                     .then((answer) => {
-                        const cid = answer[0].hash;
+                        cid = answer[0].hash;
                         const overrides = {
                             value: ethers.utils.parseEther(this.addBounty.toString()),
                         };
@@ -210,6 +211,8 @@ export default {
                     })
                     .then(() => {
                         this.loading = false;
+                        this.answers.push(issue);
+                        this.comment = '';
                     });
             }
         },
