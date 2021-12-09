@@ -40,7 +40,8 @@
     </div>
 
     <RepositoryCode
-        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && activeBranch"
+        v-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File')
+            && ($route.params.path == '' || $route.params.path == undefined) && activeBranch"
         v-bind:branches="branchNames"
         v-bind:files="files"
         v-bind:directoryPath="[repositoryName, ...directoryPath.filter((entry) => entry !== 'files')]"
@@ -53,12 +54,24 @@
     <RepositoryNoCode
         v-else-if="($route.name == 'Repository' || $route.name == 'Path' || $route.name === 'File') && !activeBranch"
     />
-    <IssuesList v-else-if="$route.params.path == 'issues'" />
+    <IssuesList
+        v-else-if="$route.name == 'Issues' && $route.params.action === undefined"
+        :gitRepo="gitRepo"
+    />
+    <NewIssue
+        v-else-if="$route.name === 'Issues' && $route.params.action === 'new'"
+        :gitRepo="gitRepo"
+    />
+    <Issue
+        v-else-if="$route.name === 'Issues' && !isNaN($route.params.action)"
+    />
   </div>
 </template>
 
 <script>
 import IssuesList from './IssuesList.vue';
+import Issue from './Issue.vue';
+import NewIssue from './NewIssue.vue';
 import RepositoryCode from './RepositoryCode.vue';
 import RepositoryNoCode from './RepositoryNoCode.vue';
 
@@ -103,6 +116,8 @@ export default {
         IssuesList,
         DonateButton,
         CollectTips,
+        NewIssue,
+        Issue,
     },
 
     data: () => ({
@@ -160,13 +175,13 @@ export default {
             // if we visit a tab, we have to differentiate between files overview
             // and everything else.
             // e.target.id.substring(1) gives me the name of the tab, excluding the leading slash
-            if (e.target.id !== '/code') {
-                pushRoute.name = 'Path';
-                pushRoute.params = {
-                    path: e.target.id.substring(1),
-                };
+            if (e.target.id === '/issues') {
+                pushRoute.name = 'Issues';
             } else {
                 pushRoute.name = 'Repository';
+                pushRoute.params = {
+                    path: '',
+                };
             }
             this.$router.push(pushRoute);
         },
@@ -264,6 +279,7 @@ export default {
              * Function goes through the remote database and displays the files
              * from the selected directory.
              */
+            console.log('Display files');
             let folder = this.remoteDatabase;
             // check where the user currently is
             /* eslint-disable-next-line */
@@ -363,7 +379,7 @@ export default {
                     // and the path is undefined, we set the selected tab on 0
                     // if someone is on issues and searches for a diffrerent repo
                     // this is going to set the tab on code.
-                    if (to.params.path === undefined) {
+                    if (to.params.path === undefined || to.params.path === '') {
                         this.selectedTab = 0;
                         await this.loadGitRepository();
                     }
