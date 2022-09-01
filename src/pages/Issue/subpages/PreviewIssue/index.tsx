@@ -89,7 +89,7 @@ export const PreviewIssue: React.FC = () => {
           issueText: form.comment,
           issueTitle: "",
           timestamp: Date.now(),
-          author: userAddress,
+          author: walletAddress,
         };
         let cid: string;
         ipfsClient

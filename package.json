@@ -7,7 +7,8 @@
     "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet",
     "start": "npm run start-dev",
     "start-dev": "webpack serve --config=configs/webpack/dev.js",
-    "start-prod": "npm run build && node express.js"
+    "start-prod": "npm run build && node express.js",
+    "start-git3": "webpack serve --config=configs/webpack/prod.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.7",
