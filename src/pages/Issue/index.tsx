@@ -47,6 +47,14 @@ export const Issue: React.FC = () => {
       .then((allIssues) =>
         allIssues.map(async (issue, index) => {
           // resolve the cid to get the issues data
+          const data = await fetch(`https://${issue[0][2]}.ipfs.w3s.link`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                return data;
+            });
+          console.log('DATA2', data);
           const issueDataRaw = await ipfsClient.cat(issue[0][2]).next();
           const issueData = JSON.parse(
             new TextDecoder("utf-8").decode(issueDataRaw.value),
