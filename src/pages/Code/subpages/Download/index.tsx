@@ -6,12 +6,13 @@ import { CustomizedPopover } from "./styled";
 import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
 
 interface DownloadProps {
+  network: string,
   repoName: string;
   userAddress: string;
 }
 
 export const Download: React.FC<DownloadProps> = (props) => {
-  const { repoName, userAddress } = props;
+  const { network, repoName, userAddress } = props;
 
   const [anchorPopoverEl, setAnchorPopoverEl] =
     React.useState<null | HTMLElement>(null);
@@ -24,7 +25,7 @@ export const Download: React.FC<DownloadProps> = (props) => {
     setAnchorPopoverEl(null);
   };
 
-  const git3Clone = `git3 clone ${userAddress}/${repoName}`;
+  const git3Clone = `git3 clone ${network.toLowerCase()}:${userAddress}/${repoName}`;
 
   const copyInputText = () => {
     navigator.clipboard.writeText(git3Clone);

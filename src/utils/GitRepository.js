@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 
 import GitRepositoryError from './Errors';
-import gitBranchJson from '../assets/contracts/facets/GitBranch.sol/GitBranch.json';
-import gitTipsJson from '../assets/contracts/facets/GitTips.sol/GitTips.json';
-import gitIssuesJson from '../assets/contracts/facets/GitIssues.sol/GitIssues.json';
+import gitBranchJson from '../assets/contracts/repo_facets/GitBranch.sol/GitBranch.json';
+import gitTipsJson from '../assets/contracts/repo_facets/GitTips.sol/GitTips.json';
+import gitIssuesJson from '../assets/contracts/repo_facets/GitIssues.sol/GitIssues.json';
 
 export default class GitRepository {
     #gitBranchContract;

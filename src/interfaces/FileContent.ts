@@ -1,4 +1,4 @@
 export interface FileContent {
-  line: number;
+  line: string;
   text: string;
 }

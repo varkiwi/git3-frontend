@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { createContainer } from "unstated-next";
-import gitFactoryJson from "../assets/contracts/GitFactory.sol/GitFactory.json";
+import gitFactoryJson from "../assets/contracts/factory_facets/RepositoryManagement.sol/RepositoryManagement.json";
 import { create } from "ipfs-http-client";
 import React, { useState } from "react";
 import { EChainType } from "enums/ChainType";

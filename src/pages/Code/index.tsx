@@ -29,7 +29,7 @@ interface RepoFiles {
 
 export const Code: React.FC = () => {
   const { setGitRepository, repoUrl } = WalletContainer.useContainer();
-  const { gitFactory, ipfsClient } = GitContainer.useContainer();
+  const { gitFactory, ipfsClient, chainType } = GitContainer.useContainer();
 
   const location = useLocation();
   const history = useHistory();
@@ -61,12 +61,15 @@ export const Code: React.FC = () => {
   };
 
   const resolveCID = async (cid: string) => {
-    const data = await ipfsClient.cat(cid);
-    return data
-      .next()
-      .then((obj: IpfsData) =>
-        JSON.parse(new TextDecoder("utf-8").decode(obj.value)),
-      );
+    console.log('CID', cid);
+    const data = await fetch(`https://${cid}.ipfs.w3s.link`)
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            return data;
+        });
+    return data;
   };
 
   const displayFiles = (
@@ -211,9 +214,10 @@ export const Code: React.FC = () => {
       if (fileContent.content.endsWith("\n")) {
         fileContent.content = fileContent.content.replace(/\n$/, "");
       }
+      let paddingLength = fileContent.content.split("\n").length.toString().length;
       fileContent = fileContent.content.split("\n").map((text: string) => {
         lineNumber += 1;
-        return { line: lineNumber, text };
+        return { line: lineNumber.toString().padStart(paddingLength, "0"), text };
       });
       setFileContent(fileContent);
       directoryPath.push(value.name);
@@ -260,7 +264,7 @@ export const Code: React.FC = () => {
           directoryPath={directoryPath}
           emitFolderNavClick={emitFolderNavClick}
         />
-        <Download userAddress={userAddress} repoName={repoName} />
+        <Download network={chainType} userAddress={userAddress} repoName={repoName} />
       </Grid>
 
       {readFileMode ? (
