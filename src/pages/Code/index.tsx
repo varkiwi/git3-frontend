@@ -108,6 +108,7 @@ export const Code: React.FC = () => {
       .getBranch(branchName)
       .then((branch: Array<any>) => {
         if (branch[0][0] === false) {
+          setLoadingData(false);
           throw new Error("Branch is not active");
         }
         const cid = branch[0][1];
