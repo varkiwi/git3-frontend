@@ -1,20 +1,23 @@
 import { TabContext } from "@mui/lab";
 import { Box, Tab, Typography } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { CustomizedTabList, RepoNavHeader } from "./styled";
 import BugReportOutlinedIcon from "@mui/icons-material/BugReportOutlined";
 import CodeOutlinedIcon from "@mui/icons-material/CodeOutlined";
 import { Donate } from "components/Donate";
+import { Fork } from "components/Fork";
 import { WalletContainer } from "containers/WalletContainer";
 
 export const RepoNav: React.FC = () => {
-  const { walletActive, repoUrl, setRepoUrl } = WalletContainer.useContainer();
+  const { gitRepository, walletActive, repoUrl, setRepoUrl, walletAddress } = WalletContainer.useContainer();
 
   const history = useHistory();
   const location = useLocation();
   const userAddress = location.pathname.slice(1).split("/")[0];
   const repoName = location.pathname.slice(1).split("/")[1];
+
+  const [repositoryForked, setRepositoryForked] = useState<boolean>(true);
 
   const [tabValue, setTabValue] = React.useState("/repo");
   const handleTabClick = (value: string) => {
@@ -31,13 +34,26 @@ export const RepoNav: React.FC = () => {
     setRepoUrl(`/${userAddress}/${repoName}`);
   }, [location.pathname]);
 
+  if (gitRepository != null) {
+    gitRepository.repositoryInformation()
+        .then((data: any) => setRepositoryForked(data.forked));
+  }
+  
   return location.pathname !== "/" ? (
     <>
       <RepoNavHeader>
         <Typography variant="h2" marginBottom={2}>
           {repoName}
         </Typography>
-        {walletActive && <Donate />}
+        <span>
+            {walletActive && <Donate />}
+            {
+                walletActive &&
+                walletAddress.toLowerCase() != userAddress.toLowerCase() &&
+                !repositoryForked &&
+                <Fork />
+            }
+        </span>
       </RepoNavHeader>
       <TabContext value={tabValue}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
