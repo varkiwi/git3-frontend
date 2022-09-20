@@ -8,13 +8,14 @@ import { WalletContainer } from "containers/WalletContainer";
 import { useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Transaction } from "interfaces/Transaction";
+import { useHistory } from "react-router-dom";
 
 interface SendDonateForm {
   bounty: number;
 }
 
 export const Fork: React.FC = () => {
-  const { web3Provider } =
+  const { web3Provider, walletAddress } =
     WalletContainer.useContainer();
 
   const { gitFactory } = GitContainer.useContainer();
@@ -35,6 +36,8 @@ export const Fork: React.FC = () => {
   const handleOpenErrorModal = () => setOpenErrorModal(true);
   const handleCloseErrorModal = () => setOpenErrorModal(false);
 
+  const history = useHistory();
+
   const forkRepository = async () => {
     let gitFactoryWithSigner = gitFactory.connect(web3Provider.getSigner());
     gitFactory
@@ -48,6 +51,10 @@ export const Fork: React.FC = () => {
         })
         .then(() => {
             setWaitingForTx(false);
+            let location = {
+                pathname: `/${walletAddress}/${repositoryName}/repo`,
+            }
+            history.replace(location);
         })
         .catch((err: any) => {
             if (err.code === "ACTION_REJECTED") {

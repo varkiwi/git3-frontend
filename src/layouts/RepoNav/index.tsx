@@ -18,7 +18,7 @@ export const RepoNav: React.FC = () => {
   const userAddress = location.pathname.slice(1).split("/")[0];
   const repoName = location.pathname.slice(1).split("/")[1];
 
-  const [repositoryForked, setRepositoryForked] = useState<boolean>(true);
+  const [repositoryForked, setRepositoryForked] = useState<boolean>(false);
   const [repositoryForkOrigin, setRepositoryForkOrigin] = useState<string>("");
 
   const [tabValue, setTabValue] = React.useState("/repo");
