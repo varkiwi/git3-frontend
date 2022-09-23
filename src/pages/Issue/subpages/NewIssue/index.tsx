@@ -4,12 +4,10 @@ import { TextField } from "components/TextField";
 import { WalletContainer } from "containers/WalletContainer";
 import React, { useState } from "react";
 import { ethers } from "ethers";
-import { GitContainer } from "containers/GitContainer";
 import { useForm, Controller } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 import { NoWalletModal } from "components/NoWalletModal";
 import { Transaction } from "interfaces/Transaction";
-import { IpfsBufferResult } from "interfaces/Ipfs";
 
 interface IssueForm {
   title: string;
@@ -20,7 +18,6 @@ interface IssueForm {
 export const NewIssue: React.FC = () => {
   const { gitRepository, web3Provider, repoUrl } =
     WalletContainer.useContainer();
-  const { ipfsClient } = GitContainer.useContainer();
 
   const [openModal, setOpenModal] = useState(false);
   const handleCloseModal = () => setOpenModal(false);
@@ -43,52 +40,59 @@ export const NewIssue: React.FC = () => {
     let issueHash: string;
     const gitRepo = gitRepository;
     gitRepo.web3Signer = web3Provider.getSigner();
-    ipfsClient
-      .add(Buffer.from(JSON.stringify(issue)))
-      .then((answer: IpfsBufferResult) => {
-        cid = answer.path;
-        const overrides = {
-          value: ethers.utils.parseEther(form.bounty.toString()),
-        };
-        return gitRepository.openIssue(cid, overrides);
-      })
-      .then((tx: Transaction) => {
-        setLoading(true);
-        return tx.wait();
-      })
-      .then(() => {
-        setLoading(false);
-        return gitRepository.web3Signer.getAddress();
-      })
-      .then((address: string) => gitRepository.getUserCidHash(address, cid))
-      .then((result: Array<string>) => {
-        issueHash = result[0];
-        return gitRepository.issue(result[0]);
-      })
-      .then((newIssue: Array<any>) => {
-        let state;
-        if (newIssue[0].state === 0) {
-          state = "Open";
-        } else if (newIssue[0].state === 1) {
-          state = "Closed";
-        } else if (newIssue[0].state === 2) {
-          state = "Resolved";
-        } else {
-          state = "Unknown";
-        }
-        const issueData = {
-          state,
-          bounty: ethers.utils.formatEther(newIssue[0].bounty),
-          opener: newIssue[0].opener,
-          title: issue.issueTitle,
-          text: issue.issueText,
-          answers: [],
-          issueNumber: newIssue[0].issueNumber.toString(),
-          issueHash: issueHash,
-        };
-        localStorage.setItem("issue", JSON.stringify(issueData));
-        history.push(`${repoUrl}/issues/${newIssue[0].issueNumber}`);
-      });
+    fetch("https://api.web3.storage/upload", {
+        method: 'POST', 
+        headers: new Headers({
+            'Authorization': 'Bearer ' + process.env.WEB3_STORAGE_TOKEN, 
+            'Content-Type': 'application/json'
+        }),
+        body: JSON.stringify(issue)
+    })
+        .then((response: any) => response.json())
+        .then((data: any) => {
+            cid = data.cid;
+            const overrides = {
+                value: ethers.utils.parseEther(form.bounty.toString()),
+            };
+            return gitRepository.openIssue(cid, overrides);
+        })
+        .then((tx: Transaction) => {
+            setLoading(true);
+            return tx.wait();
+        })
+        .then(() => {
+            setLoading(false);
+            return gitRepository.web3Signer.getAddress();
+        })
+        .then((address: string) => gitRepository.getUserCidHash(address, cid))
+        .then((result: Array<string>) => {
+            issueHash = result[0];
+            return gitRepository.issue(result[0]);
+        })
+        .then((newIssue: Array<any>) => {
+            let state;
+            if (newIssue[0].state === 0) {
+              state = "Open";
+            } else if (newIssue[0].state === 1) {
+              state = "Closed";
+            } else if (newIssue[0].state === 2) {
+              state = "Resolved";
+            } else {
+              state = "Unknown";
+            }
+            const issueData = {
+              state,
+              bounty: ethers.utils.formatEther(newIssue[0].bounty),
+              opener: newIssue[0].opener,
+              title: issue.issueTitle,
+              text: issue.issueText,
+              answers: [],
+              issueNumber: newIssue[0].issueNumber.toString(),
+              issueHash: issueHash,
+            };
+            localStorage.setItem("issue", JSON.stringify(issueData));
+            history.push(`${repoUrl}/issues/${newIssue[0].issueNumber}`);
+        });
   };
 
   const disableSubmitBtn =
