@@ -20,7 +20,6 @@ import { FolderNav } from "./subpages/FolderNav";
 import { FileContent } from "interfaces/FileContent";
 import calculateCommitTime from "utils/calculateCommitTime";
 import GitRepository from "utils/GitRepository";
-import { IpfsData } from "interfaces/Ipfs";
 
 interface RepoFiles {
   files: object;
@@ -29,7 +28,7 @@ interface RepoFiles {
 
 export const Code: React.FC = () => {
   const { setGitRepository, repoUrl } = WalletContainer.useContainer();
-  const { gitFactory, ipfsClient, chainType } = GitContainer.useContainer();
+  const { gitFactory, chainType } = GitContainer.useContainer();
 
   const location = useLocation();
   const history = useHistory();
@@ -59,9 +58,8 @@ export const Code: React.FC = () => {
     const branchNames = await gitRepo.getBranchNames();
     setBranchesNames(branchNames[0]);
   };
-
+  
   const resolveCID = async (cid: string) => {
-    console.log('CID', cid);
     const data = await fetch(`https://${cid}.ipfs.w3s.link`)
         .then((response) => {
             return response.json();

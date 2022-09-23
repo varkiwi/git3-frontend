@@ -1,13 +1,11 @@
 import { ethers } from "ethers";
 import { createContainer } from "unstated-next";
 import gitFactoryJson from "../assets/contracts/factory_facets/RepositoryManagement.sol/RepositoryManagement.json";
-import { create } from "ipfs-http-client";
 import React, { useState } from "react";
 import { EChainType } from "enums/ChainType";
 
 interface GitState {
   gitFactory: any;
-  ipfsClient: any;
   chainType: EChainType | string;
   setChainType: (chainType: EChainType) => void;
 }
@@ -41,15 +39,8 @@ export const GitContainer = createContainer<GitState>(() => {
     provider,
   );
 
-  const ipfsClient = create({
-    host: "ipfs.infura.io",
-    port: 5001,
-    protocol: "https",
-  });
-
   return {
     gitFactory,
-    ipfsClient,
     chainType,
     setChainType,
   };

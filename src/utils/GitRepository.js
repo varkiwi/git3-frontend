@@ -4,6 +4,7 @@ import GitRepositoryError from './Errors';
 import gitBranchJson from '../assets/contracts/repo_facets/GitBranch.sol/GitBranch.json';
 import gitTipsJson from '../assets/contracts/repo_facets/GitTips.sol/GitTips.json';
 import gitIssuesJson from '../assets/contracts/repo_facets/GitIssues.sol/GitIssues.json';
+import gitRepositoryManagementJson from '../assets/contracts/repo_facets/GitRepositoryManagement.sol/GitRepositoryManagement.json';
 
 export default class GitRepository {
     #gitBranchContract;
@@ -13,6 +14,8 @@ export default class GitRepository {
     #gitIssuesContract;
 
     #gitRepoAddress;
+
+    #gitRepositoryManagement;
 
     #signer;
 
@@ -28,6 +31,7 @@ export default class GitRepository {
         this.#gitBranchContract = new ethers.Contract(address, gitBranchJson.abi, provider);
         this.#gitTipsContract = new ethers.Contract(address, gitTipsJson.abi, provider);
         this.#gitIssuesContract = new ethers.Contract(address, gitIssuesJson.abi, provider);
+        this.#gitRepositoryManagement = new ethers.Contract(address, gitRepositoryManagementJson.abi, provider);
         this.#gitRepoAddress = address;
         this.#provider = provider;
     }
@@ -116,6 +120,24 @@ export default class GitRepository {
      */
     get repositoryAddress() {
         return this.#gitRepoAddress;
+    }
+
+    /**
+     * Getter to return information about the repository
+     * @returns {Promise}
+     */
+    repositoryInformation() {
+        return this.#gitRepositoryManagement.functions.getRepositoryInfo()
+            .then((data) => {
+                return {
+                    contractOwner: data[0],
+                    donations: data[5],
+                    factory: data[1],
+                    forkOrigin: data[7],
+                    forked: data[6],
+                    name: data[2],
+                };
+            });
     }
 
     /**

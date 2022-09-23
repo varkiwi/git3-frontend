@@ -2,14 +2,12 @@ import { Box, Container, Grid, Paper, Typography } from "@mui/material";
 import { Button } from "components/Button";
 import { TextField } from "components/TextField";
 import { Timeline } from "components/Timeline";
-import { GitContainer } from "containers/GitContainer";
 import { WalletContainer } from "containers/WalletContainer";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ethers } from "ethers";
 import { useLocation } from "react-router-dom";
 import { NoWalletModal } from "components/NoWalletModal";
-import { IpfsBufferResult, IpfsData } from "interfaces/Ipfs";
 import { Transaction } from "interfaces/Transaction";
 import { Answer } from "interfaces/Answer";
 
@@ -30,7 +28,6 @@ interface IssueForm {
 export const PreviewIssue: React.FC = () => {
   const { gitRepository, web3Provider, repoUrl, walletAddress } =
     WalletContainer.useContainer();
-  const { ipfsClient } = GitContainer.useContainer();
 
   const [openModal, setOpenModal] = useState(false);
   const handleCloseModal = () => setOpenModal(false);
@@ -40,7 +37,7 @@ export const PreviewIssue: React.FC = () => {
 
   const location = useLocation();
   const userAddress = location.pathname.slice(1).split("/")[0];
-  // const issueStorage: Issue = JSON.parse(localStorage.getItem("issue") || "{}");
+  
   const [issueStorage, setIssueStorage] = useState<Issue>(JSON.parse(localStorage.getItem("issue") || "{}"));
 
   const isRepoOwner = walletAddress.toLowerCase() === userAddress.toLowerCase();
@@ -64,13 +61,14 @@ export const PreviewIssue: React.FC = () => {
   }
 
   useEffect(() => {
-    const answers = issueStorage.answers.map((answer) =>
-      ipfsClient
-        .cat(answer[0])
-        .next()
-        .then((rawData: IpfsData) =>
-          JSON.parse(new TextDecoder("utf-8").decode(rawData.value)),
-        ),
+    const answers = issueStorage.answers.map((answer) => 
+      fetch(`https://${answer[0]}.ipfs.w3s.link`)
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          return data;
+        })
     );
     Promise.all(answers).then((data) => {
       setAnswers(data);
@@ -92,30 +90,37 @@ export const PreviewIssue: React.FC = () => {
           author: walletAddress,
         };
         let cid: string;
-        ipfsClient
-          .add(Buffer.from(JSON.stringify(issue)))
-          .then((answer: IpfsBufferResult) => {
-            cid = answer.path;
-            const overrides = {
-              value: ethers.utils.parseEther(form.bounty.toString()),
-            };
-            return gitRepo.appendAnswerToIssue(
-              issueStorage.issueHash,
-              cid,
-              overrides,
-            );
-          })
-          .then((tx: Transaction) => {
-            setLoading(true);
-            return tx.wait();
-          })
-          .then((result: any) => {
-            setLoading(false);
-            setAnswers([...answers, issue]);
-            issueStorage.answers.push([cid, result.from]);
-            localStorage.setItem("issue", JSON.stringify(issueStorage));
-            resolve(true);
-          });
+        fetch("https://api.web3.storage/upload", {
+            method: 'POST', 
+            headers: new Headers({
+                'Authorization': 'Bearer ' + process.env.WEB3_STORAGE_TOKEN, 
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify(issue)
+        })
+        .then((response: any) => response.json())
+        .then((data: any) => {
+          cid = data.cid;
+          const overrides = {
+            value: ethers.utils.parseEther(form.bounty.toString()),
+          };
+          return gitRepo.appendAnswerToIssue(
+            issueStorage.issueHash,
+            cid,
+            overrides,
+          );
+        })
+        .then((tx: Transaction) => {
+          setLoading(true);
+          return tx.wait();
+        })
+        .then((result: any) => {
+          setLoading(false);
+          setAnswers([...answers, issue]);
+          issueStorage.answers.push([cid, result.from]);
+          localStorage.setItem("issue", JSON.stringify(issueStorage));
+          resolve(true);
+        });
       } else {
         resolve(true);
       }
