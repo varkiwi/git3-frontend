@@ -36,6 +36,8 @@ export const NewIssue: React.FC = () => {
       setOpenModal(true);
       return;
     }
+    console.log(web3Provider);
+    console.log(web3Provider.getSigner());
     let cid: string;
     let issueHash: string;
     const gitRepo = gitRepository;
