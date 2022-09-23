@@ -30,8 +30,6 @@ export const GitContainer = createContainer<GitState>(() => {
       gitFactoryAddress = process.env.GITFACTORY_ADDRESS_MUMBAI ?? "";
       rpcEndpoint = process.env.RPC_ENDPOINT_MUMBAI;
   }
-  console.log("ENV", process.env)
-  console.log("ENV", process.env.WEB3_STORAGE_TOKEN)
   const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
   const gitFactoryAbi = gitFactoryJson.abi;
   const gitFactory = new ethers.Contract(

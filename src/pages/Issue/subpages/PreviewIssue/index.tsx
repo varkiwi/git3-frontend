@@ -25,6 +25,9 @@ interface IssueForm {
   bounty: number;
 }
 
+console.log("ENV", process.env)
+console.log("ENV", process.env.WEB3_STORAGE_TOKEN)
+
 export const PreviewIssue: React.FC = () => {
   const { gitRepository, web3Provider, repoUrl, walletAddress } =
     WalletContainer.useContainer();
