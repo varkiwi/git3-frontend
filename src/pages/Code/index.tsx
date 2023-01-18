@@ -60,7 +60,7 @@ export const Code: React.FC = () => {
   };
   
   const resolveCID = async (cid: string) => {
-    const data = await fetch(`https://${cid}.ipfs.w3s.link`)
+    const data = await fetch(process.env.IPFS_ENDPOINT.replace('{cid}', cid))
         .then((response) => {
             return response.json();
         })

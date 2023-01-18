@@ -62,7 +62,7 @@ export const PreviewIssue: React.FC = () => {
 
   useEffect(() => {
     const answers = issueStorage.answers.map((answer) => 
-      fetch(`https://${answer[0]}.ipfs.w3s.link`)
+      fetch(process.env.IPFS_ENDPOINT.replace('{cid}', answer[0]))
         .then((response) => {
           return response.json();
         })
