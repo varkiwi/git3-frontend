@@ -6,7 +6,7 @@ import { useHistory } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Wallet } from "components/Wallet";
 
-const git3Logo = require("../../assets/img/git3Logo.png");
+import git3Logo from '../../assets/img/git3Logo.png';
 
 export const Header: React.FC = () => {
   const history = useHistory();
@@ -29,7 +29,7 @@ export const Header: React.FC = () => {
   return (
     <CustomizedAppBar position="static">
       <Toolbar>
-        <img src={git3Logo.default} alt={git3Logo} onClick={handleLogoClick} />
+        <img src={git3Logo} alt={git3Logo} onClick={handleLogoClick} />
         <Box marginLeft={3}>
           <Search />
         </Box>

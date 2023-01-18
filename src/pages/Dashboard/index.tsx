@@ -76,7 +76,7 @@ export const Dashboard: React.FC = () => {
         gap="32px"
         marginTop={2}
       >
-        <img src={git3Logo.default} alt={git3Logo} style={imgSize} />
+        <img src={git3Logo} alt={git3Logo} style={imgSize} />
         <Typography variant="h1" marginTop={4}>
           Welcome to Git3
         </Typography>
