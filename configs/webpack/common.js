@@ -46,11 +46,10 @@ module.exports = {
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        type: 'asset/resources'
-        // use: [
-        //   "file-loader?hash=sha512&digest=hex&name=img/[contenthash].[ext]",
-        //   "image-webpack-loader?bypassOnDebug&optipng.optimizationLevel=7&gifsicle.interlaced=false",
-        // ],
+        use: [
+          "file-loader?hash=sha512&digest=hex&name=img/[contenthash].[ext]",
+          "image-webpack-loader?bypassOnDebug&optipng.optimizationLevel=7&gifsicle.interlaced=false",
+        ],
       },
     ],
   },
