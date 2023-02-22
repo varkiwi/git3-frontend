@@ -9,12 +9,15 @@ import { AppContainer } from "layouts/AppContainer/styled";
 import { Dashboard } from "pages/Dashboard";
 import { Code } from "pages/Code";
 import { Issue } from "pages/Issue";
+import { Repositories } from "pages/Repositories";
 import { RepoNav } from "layouts/RepoNav";
+import { ProfileNav } from "layouts/ProfileNav";
 import { WalletContainer } from "containers/WalletContainer";
 import { NewIssue } from "pages/Issue/subpages/NewIssue";
 import { PreviewIssue } from "pages/Issue/subpages/PreviewIssue";
 
 class App extends React.Component<Record<string, unknown>, undefined> {
+
   public render() {
     return (
       <GitContainer.Provider>
@@ -23,7 +26,12 @@ class App extends React.Component<Record<string, unknown>, undefined> {
             <Router>
               <Header />
               <AppContainer>
-                <RepoNav />
+                <Route render={({ location }) => {
+                    return location.pathname.slice(1).split("/")[1] != 'repositories' ? <RepoNav /> : null 
+                }} />
+                <Route render={({ location }) => {
+                    return location.pathname.slice(1).split("/")[1] == 'repositories' ? <ProfileNav /> : null 
+                }} />
                 <Switch>
                   <Route exact path="/" component={Dashboard} />
                   <Route path="/:repoAddress/:repoName/repo" component={Code} />
@@ -46,6 +54,11 @@ class App extends React.Component<Record<string, unknown>, undefined> {
                     exact
                     path="/:repoAddress/:repoName/issues/:id"
                     component={PreviewIssue}
+                  />
+                  <Route
+                    exact
+                    path="/:userAddress/repositories"
+                    component={Repositories}
                   />
                 </Switch>
               </AppContainer>
