@@ -3,6 +3,8 @@ import { Button } from "components/Button";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import { ethers } from "ethers";
 import { WalletContainer } from "containers/WalletContainer";
 import { Box, Modal, Typography } from "@mui/material";
@@ -25,6 +27,9 @@ export const Wallet: React.FC = () => {
     gitRepository,
   } = WalletContainer.useContainer();
   const { chainType, setChainType } = GitContainer.useContainer();
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   const history = useHistory();
 
@@ -64,6 +69,14 @@ export const Wallet: React.FC = () => {
       history.push("/");
     }
   };
+
+  const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (walletActive) {
+        setAnchorEl(event.currentTarget);
+        return;
+    }
+    showModal();
+  }
 
   const showModal = async () => {
     let provider: any;
@@ -137,6 +150,15 @@ export const Wallet: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const handleCloseModal = () => setOpenModal(false);
 
+  const handleCloseMenu = () => {
+    setAnchorEl(null)
+  };
+
+  const redirect = (event: React.MouseEvent<HTMLButtonElement>, value: string) => {
+    history.push(`/${walletAddress}/repositories`);
+    handleCloseMenu()
+  }
+
   return (
     <>
       <Button
@@ -145,7 +167,7 @@ export const Wallet: React.FC = () => {
         color="secondary"
         variant={walletActive ? "outlined" : "contained"}
         startIcon={walletActive && <AccountBalanceWalletOutlinedIcon />}
-        onClick={showModal}
+        onClick={handleClick}
       />
       <Modal open={openModal} onClose={handleCloseModal}>
         <CustomizedModalContent>
@@ -167,6 +189,21 @@ export const Wallet: React.FC = () => {
           </Box>
         </CustomizedModalContent>
       </Modal>
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleCloseMenu}
+        MenuListProps={{
+          'aria-labelledby': 'basic-button',
+        }}
+      >
+        <MenuItem
+          onClick={(e) => redirect(e, 'repositories')}
+        >
+          Your repositories
+        </MenuItem>
+      </Menu>
     </>
   );
 };
