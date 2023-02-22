@@ -8,6 +8,7 @@ import { Wallet } from "components/Wallet";
 
 import git3Logo from '../../assets/img/git3Logo.png';
 
+
 export const Header: React.FC = () => {
   const history = useHistory();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
@@ -35,7 +36,7 @@ export const Header: React.FC = () => {
         </Box>
         <Box flexGrow={1} />
         <Box>
-          <Wallet />
+            <Wallet />
         </Box>
         <IconButton size="large" onClick={handleOpenNavMenu}>
           <MenuIcon />

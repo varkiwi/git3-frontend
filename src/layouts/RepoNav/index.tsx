@@ -36,7 +36,7 @@ export const RepoNav: React.FC = () => {
     setRepoUrl(`/${userAddress}/${repoName}`);
   }, [location.pathname]);
 
-  if (gitRepository != null) {
+  if (gitRepository != null && gitRepository != false) {
     gitRepository.repositoryInformation()
         .then((data: any) => {
             setRepositoryForked(data.forked);
