@@ -28,11 +28,16 @@ export const WalletContainer = createContainer<WalletState>(() => {
   const { gitFactory } = GitContainer.useContainer();
 
   const loadContract = useCallback(async () => {
-    const userAddress = location.pathname.slice(1).split("/")[0];
-    const repoName = location.pathname.slice(1).split("/")[1];
-    if (!repoName || !userAddress) return;
-    const gitRepo = await loadSmartContract(gitFactory, userAddress, repoName);
-    setGitRepository(gitRepo);
+    // checking if the keyword 'repositories' is in the pathname
+    // if it is, the userAddress is actually a userAddress and not
+    // a repository address
+    if (['repositories'].includes(location.pathname.slice(1).split("/")[1])) {
+        const userAddress = location.pathname.slice(1).split("/")[0];
+        const repoName = location.pathname.slice(1).split("/")[1];
+        if (!repoName || !userAddress) return;
+        const gitRepo = await loadSmartContract(gitFactory, userAddress, repoName);
+        setGitRepository(gitRepo);
+    }
   }, []);
 
   useEffect(() => {
