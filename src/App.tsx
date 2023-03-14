@@ -3,6 +3,7 @@ import { hot } from "react-hot-loader";
 import { GitContainer } from "containers/GitContainer";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { Header } from "layouts/Header";
+import { Footer } from "layouts/Footer";
 import { ThemeProvider } from "@mui/material";
 import { defaultTheme } from "layouts/theme";
 import { AppContainer } from "layouts/AppContainer/styled";
@@ -62,6 +63,7 @@ class App extends React.Component<Record<string, unknown>, undefined> {
                   />
                 </Switch>
               </AppContainer>
+              <Footer />
             </Router>
           </ThemeProvider>
         </WalletContainer.Provider>

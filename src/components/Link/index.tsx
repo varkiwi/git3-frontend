@@ -1,9 +1,10 @@
+import { ReactNode } from "react";
 import { LinkBaseProps } from "@mui/material";
 import * as React from "react";
 import { CustomizedLink } from "./styled";
 
 interface LinkProps extends LinkBaseProps {
-  label: string;
+  label: string | ReactNode;
 }
 
 export const Link: React.FC<LinkProps> = (props) => {
